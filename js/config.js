@@ -2,8 +2,8 @@
 // MADRASAHOPS INTEGRATED - CONFIGURATION
 // ============================================
 
-const SUPABASE_URL = 'https://qbuvszefnmymagrlhrje.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFidXZzemVmbm15bWFncmxocmplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3Mzg1NjIsImV4cCI6MjEwMDMxNDU2Mn0.3hvx3RkR6r3r9iicBf_gJIwmNF16O6WoxS9q2Hu-_ow';
+const SUPABASE_URL = 'https://mncckbsdahterdrbprws.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uY2NrYnNkYWh0ZXJkcmJwcndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NDgyMTAsImV4cCI6MjEwMDMyNDIxMH0.r7yKYu1IHPoZTK62lttzfhN4VfN-s4zMRrmE9CZfg8g';
 
 // 'supabase' global di-declare oleh supabase.min.js (UMD build)
 // initSupabase() akan meng-overwrite jadi client instance
