@@ -1,0 +1,13 @@
+# Data Excel (jangan di-push, berisi data pribadi)
+*.xlsx
+*.xls
+
+# Python server (offline only, tidak perlu untuk GitHub Pages)
+server.py
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/

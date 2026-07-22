@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPDB Online - MI Bustanul Ulum Curahkalong 01</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/config.js"></script>
+  <script>
+    (function(){
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      s.async = true;
+      s.onload = function(){ try { initSupabase(); } catch(e) {} };
+      s.onerror = function(){ console.warn('Supabase CDN gagal dimuat'); };
+      document.head.appendChild(s);
+    })();
+  </script>
+  <script src="js/db.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23059669' rx='20' width='100' height='100'/><text x='50' y='65' text-anchor='middle' font-size='36' font-weight='bold' fill='%23D4AF37'>MO</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0fdf4; min-height: 100vh; }
+
+    /* Hero */
+    .ppdb-hero {
+      background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+      padding: 48px 24px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .ppdb-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .ppdb-hero * { position: relative; z-index: 1; }
+    .ppdb-hero-icon { font-size: 56px; margin-bottom: 16px; }
+    .ppdb-hero h1 { font-size: 32px; font-weight: 800; color: white; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .ppdb-hero p { font-size: 16px; color: rgba(255,255,255,0.85); margin-bottom: 20px; }
+    .ppdb-hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+      padding: 8px 20px; border-radius: 24px; font-size: 13px; font-weight: 600; color: white;
+    }
+    .ppdb-badge-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.2); } }
+
+    /* Floating shapes */
+    .ppdb-shapes { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; }
+    .ppdb-shape {
+      position: absolute; border-radius: 50%; background: rgba(255,255,255,0.06);
+      animation: float 20s ease-in-out infinite;
+    }
+    .ppdb-shape:nth-child(1) { width: 200px; height: 200px; top: -50px; right: -50px; animation-delay: 0s; }
+    .ppdb-shape:nth-child(2) { width: 150px; height: 150px; bottom: -30px; left: 10%; animation-delay: -5s; }
+    .ppdb-shape:nth-child(3) { width: 100px; height: 100px; top: 20%; left: 5%; animation-delay: -10s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-20px) rotate(5deg); }
+      66% { transform: translateY(10px) rotate(-3deg); }
+    }
+
+    /* Container */
+    .ppdb-container { max-width: 720px; margin: -40px auto 40px; padding: 0 16px; position: relative; z-index: 2; }
+
+    /* Progress */
+    .ppdb-progress { background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    .ppdb-progress-bar { height: 4px; background: #e5e7eb; border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
+    .ppdb-progress-fill { height: 100%; background: linear-gradient(90deg, #059669, #10b981); border-radius: 2px; transition: width 0.4s ease; }
+    .ppdb-steps { display: flex; justify-content: space-between; }
+    .ppdb-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+    .ppdb-step-num {
+      width: 36px; height: 36px; border-radius: 50%; background: #f3f4f6; border: 2px solid #d1d5db;
+      display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #9ca3af;
+      transition: all 0.3s ease;
+    }
+    .ppdb-step.active .ppdb-step-num { background: #059669; border-color: #059669; color: white; }
+    .ppdb-step.current .ppdb-step-num { box-shadow: 0 0 0 4px rgba(5,150,105,0.2); }
+    .ppdb-step-label { font-size: 11px; font-weight: 500; color: #9ca3af; text-align: center; }
+    .ppdb-step.active .ppdb-step-label { color: #059669; font-weight: 600; }
+
+    /* Form Card */
+    .ppdb-card {
+      background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;
+    }
+    .ppdb-card-header { padding: 24px 28px; border-bottom: 1px solid #f3f4f6; }
+    .ppdb-card-header h2 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+    .ppdb-card-header p { font-size: 13px; color: #6b7280; }
+    .ppdb-card-body { padding: 28px; }
+    .ppdb-card-footer {
+      padding: 16px 28px; background: #f9fafb; border-top: 1px solid #f3f4f6;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Form */
+    .ppdb-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .ppdb-group { display: flex; flex-direction: column; gap: 5px; }
+    .ppdb-full { grid-column: 1 / -1; }
+    .ppdb-label { font-size: 13px; font-weight: 600; color: #374151; }
+    .ppdb-required { color: #ef4444; }
+    .ppdb-input, .ppdb-select, .ppdb-textarea {
+      padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px;
+      color: #111827; background: white; transition: all 0.2s; outline: none; font-family: inherit;
+    }
+    .ppdb-input:focus, .ppdb-select:focus, .ppdb-textarea:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); }
+    .ppdb-textarea { min-height: 90px; resize: vertical; }
+    .ppdb-select {
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 36px;
+    }
+
+    /* Radio */
+    .ppdb-radio-group { display: flex; gap: 10px; }
+    .ppdb-radio {
+      flex: 1; display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+      border: 1.5px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    }
+    .ppdb-radio:hover { border-color: #059669; background: #f0fdf4; }
+    .ppdb-radio.active { border-color: #059669; background: #ecfdf5; }
+    .ppdb-radio input { display: none; }
+    .ppdb-radio-icon { font-size: 18px; }
+
+    /* Jenjang */
+    .ppdb-jenjang-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .ppdb-jenjang-card {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px;
+      border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .ppdb-jenjang-card:hover { border-color: #059669; transform: translateY(-2px); }
+    .ppdb-jenjang-card.active { border-color: #059669; background: #ecfdf5; box-shadow: 0 4px 12px rgba(5,150,105,0.15); }
+    .ppdb-jenjang-card input { display: none; }
+    .ppdb-jenjang-icon { font-size: 28px; }
+    .ppdb-jenjang-name { font-size: 16px; font-weight: 800; color: #111827; }
+    .ppdb-jenjang-desc { font-size: 10px; color: #6b7280; }
+
+    /* Section */
+    .ppdb-section { font-size: 14px; font-weight: 700; color: #059669; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .ppdb-section::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+    .ppdb-divider { height: 1px; background: #f3f4f6; margin: 24px 0; }
+
+    /* Buttons */
+    .ppdb-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; outline: none; font-family: inherit;
+    }
+    .ppdb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ppdb-btn-icon { width: 18px; height: 18px; }
+    .ppdb-btn-primary { background: linear-gradient(135deg, #059669, #047857); color: white; }
+    .ppdb-btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #047857, #065f46); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+    .ppdb-btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .ppdb-btn-success:hover:not(:disabled) { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+    .ppdb-btn-outline { background: white; border: 1.5px solid #e5e7eb; color: #374151; }
+    .ppdb-btn-outline:hover:not(:disabled) { border-color: #059669; color: #059669; }
+
+    /* Confirm */
+    .ppdb-confirm { background: #f9fafb; border-radius: 12px; overflow: hidden; }
+    .ppdb-confirm-header { display: flex; align-items: center; gap: 14px; padding: 18px 22px; background: linear-gradient(135deg, #059669, #047857); color: white; }
+    .ppdb-confirm-icon { font-size: 28px; }
+    .ppdb-confirm-title { font-size: 17px; font-weight: 700; }
+    .ppdb-confirm-sub { font-size: 12px; opacity: 0.85; }
+    .ppdb-confirm-section { padding: 18px 22px; border-bottom: 1px solid #f3f4f6; }
+    .ppdb-confirm-section:last-child { border-bottom: none; }
+    .ppdb-confirm-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; }
+    .ppdb-confirm-value { font-size: 14px; color: #111827; margin-bottom: 8px; }
+    .ppdb-jenjang-badge { display: inline-block; padding: 3px 10px; background: #ede9fe; color: #7c3aed; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+    /* Success */
+    .ppdb-success { text-align: center; padding: 48px 24px; }
+    .ppdb-success-icon {
+      width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    .ppdb-success-icon svg { width: 40px; height: 40px; color: white; }
+    .ppdb-success h2 { font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 8px; }
+    .ppdb-success p { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
+    .ppdb-success-number {
+      font-size: 28px; font-weight: 800; color: #059669; background: #ecfdf5;
+      padding: 12px 24px; border-radius: 12px; display: inline-block; margin: 12px 0 20px; letter-spacing: 2px;
+    }
+
+    /* Info */
+    .ppdb-info { max-width: 720px; margin: 0 auto 40px; padding: 0 16px; }
+    .ppdb-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .ppdb-info-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .ppdb-info-icon { font-size: 28px; margin-bottom: 10px; }
+    .ppdb-info-card h3 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 10px; }
+    .ppdb-info-card ul { list-style: none; padding: 0; }
+    .ppdb-info-card li { font-size: 12px; color: #6b7280; padding: 4px 0; border-bottom: 1px solid #f3f4f6; }
+    .ppdb-info-card li:last-child { border-bottom: none; }
+
+    /* Footer */
+    .ppdb-footer { text-align: center; padding: 24px; font-size: 12px; color: #9ca3af; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .ppdb-hero { padding: 32px 16px 48px; }
+      .ppdb-hero h1 { font-size: 22px; }
+      .ppdb-container { margin-top: -32px; }
+      .ppdb-grid { grid-template-columns: 1fr; }
+      .ppdb-jenjang-grid { grid-template-columns: 1fr; }
+      .ppdb-steps { gap: 4px; }
+      .ppdb-step-label { font-size: 9px; }
+      .ppdb-info-grid { grid-template-columns: 1fr; }
+      .ppdb-card-body { padding: 20px; }
+      .ppdb-radio-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero -->
+  <div class="ppdb-hero">
+    <div class="ppdb-shapes">
+      <div class="ppdb-shape"></div>
+      <div class="ppdb-shape"></div>
+      <div class="ppdb-shape"></div>
+    </div>
+    <div class="ppdb-hero-icon">🎓</div>
+    <h1>Penerimaan Peserta Didik Baru</h1>
+    <p>MI Bustanul Ulum Curahkalong 01 — Tahun Pelajaran 2025/2026</p>
+    <div class="ppdb-hero-badge">
+      <span class="ppdb-badge-dot"></span>
+      Pendaftaran sedang dibuka
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="ppdb-container">
+    <div class="ppdb-progress">
+      <div class="ppdb-progress-bar"><div class="ppdb-progress-fill" id="progressFill" style="width:25%"></div></div>
+      <div class="ppdb-steps" id="stepIndicators"></div>
+    </div>
+
+    <div class="ppdb-card">
+      <div class="ppdb-card-header">
+        <h2 id="stepTitle">Data Pribadi Calon Siswa</h2>
+        <p id="stepSubtitle">Lengkapi data diri calon siswa dengan benar</p>
+      </div>
+      <div class="ppdb-card-body" id="stepContent"></div>
+      <div class="ppdb-card-footer">
+        <button class="ppdb-btn ppdb-btn-outline" id="btnPrev" onclick="prevStep()">
+          <svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          Kembali
+        </button>
+        <button class="ppdb-btn ppdb-btn-primary" id="btnNext" onclick="nextStep()">
+          Selanjutnya
+          <svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="ppdb-info">
+    <div class="ppdb-info-grid">
+      <div class="ppdb-info-card">
+        <div class="ppdb-info-icon">📋</div>
+        <h3>Persyaratan</h3>
+        <ul>
+          <li>Akta Kelahiran</li>
+          <li>Kartu Keluarga</li>
+          <li>Ijazah / Surat Keterangan</li>
+          <li>Pas Photo 3x4</li>
+        </ul>
+      </div>
+      <div class="ppdb-info-card">
+        <div class="ppdb-info-icon">📅</div>
+        <h3>Jadwal</h3>
+        <ul>
+          <li>Pendaftaran: Juli — Agustus</li>
+          <li>Seleksi: Agustus</li>
+          <li>Pengumuman: September</li>
+          <li>MPLS: September</li>
+        </ul>
+      </div>
+      <div class="ppdb-info-card">
+        <div class="ppdb-info-icon">📞</div>
+        <h3>Hubungi Kami</h3>
+        <ul>
+          <li>Telp: (0351) 123456</li>
+          <li>WA: 081234567890</li>
+          <li>Email: ppdb@miu.sch.id</li>
+          <li>Jam: 08.00 — 15.00 WIB</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="ppdb-footer">
+    &copy; 2025 MI Bustanul Ulum Curahkalong 01 — Sistem PPDB Online
+  </div>
+
+  <script>
+    let step = 1;
+    const totalSteps = 4;
+    let data = {};
+
+    const stepTitles = {
+      1: 'Data Pribadi Calon Siswa',
+      2: 'Data Orang Tua / Wali',
+      3: 'Data Asal Sekolah',
+      4: 'Konfirmasi & Kirim'
+    };
+    const stepSubtitles = {
+      1: 'Lengkapi data diri calon siswa dengan benar',
+      2: 'Masukkan data orang tua atau wali',
+      3: 'Informasi sekolah asal dan jenjang yang dipilih',
+      4: 'Periksa kembali data sebelum mengirim'
+    };
+
+    function renderIndicators() {
+      const labels = ['Data Diri', 'Orang Tua', 'Sekolah', 'Konfirmasi'];
+      document.getElementById('stepIndicators').innerHTML = labels.map((l, i) => {
+        const num = i + 1;
+        const cls = step >= num ? 'active' : '' + (step === num ? ' current' : '');
+        return `<div class="ppdb-step ${step > num ? 'active' : ''} ${step === num ? 'current' : ''}">
+          <div class="ppdb-step-num">${step > num ? '✓' : num}</div>
+          <div class="ppdb-step-label">${l}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function render() {
+      document.getElementById('progressFill').style.width = (step / totalSteps * 100) + '%';
+      document.getElementById('stepTitle').textContent = stepTitles[step];
+      document.getElementById('stepSubtitle').textContent = stepSubtitles[step];
+      document.getElementById('btnPrev').disabled = step === 1;
+
+      if (step < totalSteps) {
+        document.getElementById('btnNext').innerHTML = 'Selanjutnya <svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+        document.getElementById('btnNext').className = 'ppdb-btn ppdb-btn-primary';
+        document.getElementById('btnNext').onclick = nextStep;
+      } else {
+        document.getElementById('btnNext').innerHTML = '<svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Kirim Pendaftaran';
+        document.getElementById('btnNext').className = 'ppdb-btn ppdb-btn-success';
+        document.getElementById('btnNext').onclick = submitForm;
+      }
+
+      renderIndicators();
+      renderContent();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderContent() {
+      const el = document.getElementById('stepContent');
+      switch(step) {
+        case 1: el.innerHTML = step1(); break;
+        case 2: el.innerHTML = step2(); break;
+        case 3: el.innerHTML = step3(); break;
+        case 4: el.innerHTML = step4(); break;
+      }
+    }
+
+    function step1() {
+      return `<div class="ppdb-grid">
+        <div class="ppdb-group ppdb-full">
+          <label class="ppdb-label">Nama Lengkap <span class="ppdb-required">*</span></label>
+          <input type="text" class="ppdb-input" placeholder="Masukkan nama lengkap" value="${data.nama||''}" oninput="data.nama=this.value">
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">Tempat Lahir <span class="ppdb-required">*</span></label>
+          <input type="text" class="ppdb-input" placeholder="Kota/Kabupaten" value="${data.tempat_lahir||''}" oninput="data.tempat_lahir=this.value">
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">Tanggal Lahir <span class="ppdb-required">*</span></label>
+          <input type="date" class="ppdb-input" value="${data.tgl_lahir||''}" onchange="data.tgl_lahir=this.value">
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">Jenis Kelamin <span class="ppdb-required">*</span></label>
+          <div class="ppdb-radio-group">
+            <label class="ppdb-radio ${data.jk==='L'?'active':''}">
+              <input type="radio" name="jk" value="L" ${data.jk==='L'?'checked':''} onchange="data.jk='L';render()">
+              <span class="ppdb-radio-icon">👨</span><span>Laki-laki</span>
+            </label>
+            <label class="ppdb-radio ${data.jk==='P'?'active':''}">
+              <input type="radio" name="jk" value="P" ${data.jk==='P'?'checked':''} onchange="data.jk='P';render()">
+              <span class="ppdb-radio-icon">👩</span><span>Perempuan</span>
+            </label>
+          </div>
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">NISN</label>
+          <input type="text" class="ppdb-input" placeholder="Nomor Induk Siswa Nasional" value="${data.nisn||''}" oninput="data.nisn=this.value" maxlength="10">
+        </div>
+        <div class="ppdb-group ppdb-full">
+          <label class="ppdb-label">Alamat Lengkap <span class="ppdb-required">*</span></label>
+          <textarea class="ppdb-textarea" placeholder="Jalan, RT/RW, Desa/Kelurahan, Kecamatan" oninput="data.alamat=this.value">${data.alamat||''}</textarea>
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">No. HP / WA</label>
+          <input type="tel" class="ppdb-input" placeholder="08xxxxxxxxxx" value="${data.no_hp||''}" oninput="data.no_hp=this.value">
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">Agama</label>
+          <select class="ppdb-select" onchange="data.agama=this.value">
+            <option value="">Pilih Agama</option>
+            <option value="Islam" ${data.agama==='Islam'?'selected':''}>Islam</option>
+            <option value="Kristen" ${data.agama==='Kristen'?'selected':''}>Kristen</option>
+            <option value="Katolik" ${data.agama==='Katolik'?'selected':''}>Katolik</option>
+            <option value="Hindu" ${data.agama==='Hindu'?'selected':''}>Hindu</option>
+            <option value="Buddha" ${data.agama==='Buddha'?'selected':''}>Buddha</option>
+          </select>
+        </div>
+      </div>`;
+    }
+
+    function step2() {
+      return `
+        <div class="ppdb-section">Data Ayah</div>
+        <div class="ppdb-grid">
+          <div class="ppdb-group ppdb-full">
+            <label class="ppdb-label">Nama Ayah <span class="ppdb-required">*</span></label>
+            <input type="text" class="ppdb-input" placeholder="Nama lengkap ayah" value="${data.nama_ayah||''}" oninput="data.nama_ayah=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">Pekerjaan Ayah</label>
+            <input type="text" class="ppdb-input" placeholder="Pekerjaan" value="${data.pk_ayah||''}" oninput="data.pk_ayah=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">No. HP Ayah</label>
+            <input type="tel" class="ppdb-input" placeholder="08xxxxxxxxxx" value="${data.hp_ayah||''}" oninput="data.hp_ayah=this.value">
+          </div>
+        </div>
+        <div class="ppdb-divider"></div>
+        <div class="ppdb-section">Data Ibu</div>
+        <div class="ppdb-grid">
+          <div class="ppdb-group ppdb-full">
+            <label class="ppdb-label">Nama Ibu <span class="ppdb-required">*</span></label>
+            <input type="text" class="ppdb-input" placeholder="Nama lengkap ibu" value="${data.nama_ibu||''}" oninput="data.nama_ibu=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">Pekerjaan Ibu</label>
+            <input type="text" class="ppdb-input" placeholder="Pekerjaan" value="${data.pk_ibu||''}" oninput="data.pk_ibu=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">No. HP Ibu</label>
+            <input type="tel" class="ppdb-input" placeholder="08xxxxxxxxxx" value="${data.hp_ibu||''}" oninput="data.hp_ibu=this.value">
+          </div>
+        </div>
+        <div class="ppdb-divider"></div>
+        <div class="ppdb-section">Wali (Opsional)</div>
+        <div class="ppdb-grid">
+          <div class="ppdb-group ppdb-full">
+            <label class="ppdb-label">Nama Wali</label>
+            <input type="text" class="ppdb-input" placeholder="Kosongkan jika tidak ada" value="${data.nama_wali||''}" oninput="data.nama_wali=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">Pekerjaan Wali</label>
+            <input type="text" class="ppdb-input" placeholder="Pekerjaan" value="${data.pk_wali||''}" oninput="data.pk_wali=this.value">
+          </div>
+          <div class="ppdb-group">
+            <label class="ppdb-label">No. HP Wali</label>
+            <input type="tel" class="ppdb-input" placeholder="08xxxxxxxxxx" value="${data.hp_wali||''}" oninput="data.hp_wali=this.value">
+          </div>
+        </div>`;
+    }
+
+    function step3() {
+      return `<div class="ppdb-grid">
+        <div class="ppdb-group ppdb-full">
+          <label class="ppdb-label">Asal Sekolah <span class="ppdb-required">*</span></label>
+          <input type="text" class="ppdb-input" placeholder="Nama sekolah asal" value="${data.asal_sekolah||''}" oninput="data.asal_sekolah=this.value">
+        </div>
+        <div class="ppdb-group ppdb-full">
+          <label class="ppdb-label">Jenjang <span class="ppdb-required">*</span></label>
+          <div class="ppdb-jenjang-grid">
+            <label class="ppdb-jenjang-card ${data.jenjang==='MI'?'active':''}">
+              <input type="radio" name="jenjang" value="MI" ${data.jenjang==='MI'?'checked':''} onchange="data.jenjang='MI';render()">
+              <div class="ppdb-jenjang-icon">🏫</div>
+              <div class="ppdb-jenjang-name">MI</div>
+              <div class="ppdb-jenjang-desc">Madrasah Ibtidaiyah</div>
+            </label>
+            <label class="ppdb-jenjang-card ${data.jenjang==='MTs'?'active':''}">
+              <input type="radio" name="jenjang" value="MTs" ${data.jenjang==='MTs'?'checked':''} onchange="data.jenjang='MTs';render()">
+              <div class="ppdb-jenjang-icon">🏛️</div>
+              <div class="ppdb-jenjang-name">MTs</div>
+              <div class="ppdb-jenjang-desc">Madrasah Tsanawiyah</div>
+            </label>
+            <label class="ppdb-jenjang-card ${data.jenjang==='MA'?'active':''}">
+              <input type="radio" name="jenjang" value="MA" ${data.jenjang==='MA'?'checked':''} onchange="data.jenjang='MA';render()">
+              <div class="ppdb-jenjang-icon">🎓</div>
+              <div class="ppdb-jenjang-name">MA</div>
+              <div class="ppdb-jenjang-desc">Madrasah Aliyah</div>
+            </label>
+          </div>
+        </div>
+        <div class="ppdb-group">
+          <label class="ppdb-label">Jenis Pendaftaran</label>
+          <select class="ppdb-select" onchange="data.jenis_daftar=this.value">
+            <option value="baru" ${data.jenis_daftar==='baru'?'selected':''}>Siswa Baru</option>
+            <option value="pindahan" ${data.jenis_daftar==='pindahan'?'selected':''}>Pindahan</option>
+            <option value="mutasi" ${data.jenis_daftar==='mutasi'?'selected':''}>Mutasi</option>
+          </select>
+        </div>
+      </div>`;
+    }
+
+    function step4() {
+      return `<div class="ppdb-confirm">
+        <div class="ppdb-confirm-header">
+          <div class="ppdb-confirm-icon">📋</div>
+          <div><div class="ppdb-confirm-title">Ringkasan Pendaftaran</div><div class="ppdb-confirm-sub">Pastikan semua data sudah benar</div></div>
+        </div>
+        <div class="ppdb-confirm-section">
+          <div style="font-size:14px;font-weight:700;color:#059669;margin-bottom:12px">👤 Data Pribadi</div>
+          <div class="ppdb-confirm-label">Nama Lengkap</div><div class="ppdb-confirm-value">${data.nama||'-'}</div>
+          <div class="ppdb-confirm-label">Tempat/Tgl Lahir</div><div class="ppdb-confirm-value">${data.tempat_lahir||'-'}${data.tgl_lahir?', '+fmtDate(data.tgl_lahir):''}</div>
+          <div class="ppdb-confirm-label">Jenis Kelamin</div><div class="ppdb-confirm-value">${data.jk==='L'?'Laki-laki':data.jk==='P'?'Perempuan':'-'}</div>
+          <div class="ppdb-confirm-label">NISN</div><div class="ppdb-confirm-value">${data.nisn||'-'}</div>
+          <div class="ppdb-confirm-label">Alamat</div><div class="ppdb-confirm-value">${data.alamat||'-'}</div>
+        </div>
+        <div class="ppdb-confirm-section">
+          <div style="font-size:14px;font-weight:700;color:#059669;margin-bottom:12px">👨‍👩‍👧 Orang Tua</div>
+          <div class="ppdb-confirm-label">Ayah</div><div class="ppdb-confirm-value">${data.nama_ayah||'-'} ${data.pk_ayah?'('+data.pk_ayah+')':''}</div>
+          <div class="ppdb-confirm-label">Ibu</div><div class="ppdb-confirm-value">${data.nama_ibu||'-'} ${data.pk_ibu?'('+data.pk_ibu+')':''}</div>
+        </div>
+        <div class="ppdb-confirm-section">
+          <div style="font-size:14px;font-weight:700;color:#059669;margin-bottom:12px">🏫 Sekolah</div>
+          <div class="ppdb-confirm-label">Asal Sekolah</div><div class="ppdb-confirm-value">${data.asal_sekolah||'-'}</div>
+          <div class="ppdb-confirm-label">Jenjang</div><div class="ppdb-confirm-value"><span class="ppdb-jenjang-badge">${data.jenjang||'-'}</span></div>
+          <div class="ppdb-confirm-label">Jenis Pendaftaran</div><div class="ppdb-confirm-value">${data.jenis_daftar==='pindahan'?'Pindahan':data.jenis_daftar==='mutasi'?'Mutasi':'Siswa Baru'}</div>
+        </div>
+      </div>`;
+    }
+
+    function fmtDate(s) {
+      const d = new Date(s);
+      return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    }
+
+    function genNo(jenjang) {
+      const y = new Date().getFullYear();
+      const p = jenjang==='MI'?'MI':jenjang==='MTs'?'MT':jenjang==='MA'?'MA':'MK';
+      const seq = String(Math.floor(Math.random()*9999)).padStart(4,'0');
+      return p+'-'+y+'-'+seq;
+    }
+
+    function validate() {
+      if (step===1) {
+        if (!data.nama?.trim()) { alert('Nama lengkap wajib diisi'); return false; }
+        if (!data.tempat_lahir?.trim()) { alert('Tempat lahir wajib diisi'); return false; }
+        if (!data.tgl_lahir) { alert('Tanggal lahir wajib diisi'); return false; }
+        if (!data.jk) { alert('Jenis kelamin wajib dipilih'); return false; }
+        if (!data.alamat?.trim()) { alert('Alamat wajib diisi'); return false; }
+      }
+      if (step===2) {
+        if (!data.nama_ayah?.trim()) { alert('Nama ayah wajib diisi'); return false; }
+        if (!data.nama_ibu?.trim()) { alert('Nama ibu wajib diisi'); return false; }
+      }
+      if (step===3) {
+        if (!data.asal_sekolah?.trim()) { alert('Asal sekolah wajib diisi'); return false; }
+        if (!data.jenjang) { alert('Jenjang wajib dipilih'); return false; }
+      }
+      return true;
+    }
+
+    function nextStep() { if (validate() && step < totalSteps) { step++; render(); } }
+    function prevStep() { if (step > 1) { step--; render(); } }
+
+    async function submitForm() {
+      if (!validate()) return;
+      const no = genNo(data.jenjang);
+      const entry = {
+        id: 'ppdb_' + Date.now(),
+        no_pendaftaran: no,
+        nama_lengkap: data.nama,
+        tempat_lahir: data.tempat_lahir,
+        tgl_lahir: data.tgl_lahir,
+        jenis_kelamin: data.jk,
+        nisn: data.nisn || '',
+        alamat: data.alamat,
+        no_hp: data.no_hp || '',
+        agama: data.agama || '',
+        nama_ayah: data.nama_ayah,
+        pekerjaan_ayah: data.pk_ayah || '',
+        hp_ayah: data.hp_ayah || '',
+        nama_ibu: data.nama_ibu,
+        pekerjaan_ibu: data.pk_ibu || '',
+        hp_ibu: data.hp_ibu || '',
+        nama_wali: data.nama_wali || '',
+        pekerjaan_wali: data.pk_wali || '',
+        hp_wali: data.hp_wali || '',
+        asal_sekolah: data.asal_sekolah,
+        jenjang: data.jenjang,
+        jenis_pendaftaran: data.jenis_daftar || 'baru',
+        tahun_penerimaan: '2025/2026',
+        tanggal_daftar: new Date().toISOString(),
+        status: 'pending',
+        madrasah_id: 'mad_001'
+      };
+
+      // Save — Supabase online atau localStorage
+      if (typeof supabase !== 'undefined' && supabase) {
+        await DB.insert('ppdb_pendaftaran', entry);
+      } else {
+        let ppdb = JSON.parse(localStorage.getItem('mops_ppdb_pendaftaran') || '[]');
+        ppdb.push(entry);
+        localStorage.setItem('mops_ppdb_pendaftaran', JSON.stringify(ppdb));
+      }
+
+      // Show success
+      document.querySelector('.ppdb-card').innerHTML = `
+        <div class="ppdb-success">
+          <div class="ppdb-success-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2>Pendaftaran Berhasil!</h2>
+          <p>Nomor pendaftaran Anda:</p>
+          <div class="ppdb-success-number">${no}</div>
+          <p style="color:#9ca3af;font-size:13px;margin-bottom:24px">Simpan nomor ini untuk keperluan verifikasi</p>
+          <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
+            <button class="ppdb-btn ppdb-btn-primary" onclick="location.reload()" style="justify-content:center">Daftar Lagi</button>
+            <button class="ppdb-btn ppdb-btn-outline" onclick="window.print()" style="justify-content:center">
+              <svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              Cetak Tanda Terima
+            </button>
+          </div>
+        </div>
+      `;
+      document.querySelector('.ppdb-progress').style.display = 'none';
+    }
+
+    // Init
+    render();
+  </script>
+</body>
+</html>

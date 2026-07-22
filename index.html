@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SI-MANTAP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" id="loginFavicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23059669' rx='20' width='100' height='100'/><text x='50' y='65' text-anchor='middle' font-size='36' font-weight='bold' fill='%23D4AF37'>MO</text></svg>">
+</head>
+<body class="login-bg-pattern">
+  <div class="login-page">
+    <div class="login-container">
+      <div class="login-branding">
+        <div class="mb-6">
+          <div id="loginLogoBox" class="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/30 overflow-hidden">
+            <span id="loginLogoText" class="text-3xl font-extrabold" style="color: #D4AF37;">MO</span>
+          </div>
+        </div>
+        <h1><span id="loginAppName">SI-MANTAP</span><br><span id="loginTagline" class="text-sm font-normal text-white/80">Sistem Informasi Madrasah</span></h1>
+        <p class="mt-4 text-white/70 leading-relaxed" id="loginDesc">
+          Aplikasi terintegrasi untuk operator madrasah di bawah Kementerian Agama RI.
+        </p>
+        <div class="mt-8 grid grid-cols-2 gap-4">
+          <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+            <div class="text-2xl font-bold" style="color: #D4AF37;">MI/MTs/MA</div>
+            <div class="text-sm text-white/70 mt-1">Multi-Jenjang Madrasah</div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+            <div class="text-2xl font-bold" style="color: #D4AF37;">7 Modul</div>
+            <div class="text-sm text-white/70 mt-1">Akademik, Keuangan, PTK</div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+            <div class="text-2xl font-bold" style="color: #D4AF37;">KMA 183</div>
+            <div class="text-sm text-white/70 mt-1">Kurikulum Terintegrasi</div>
+          </div>
+          <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+            <div class="text-2xl font-bold" style="color: #D4AF37;">EMIS</div>
+            <div class="text-sm text-white/70 mt-1">Sinkronisasi Data</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-card">
+        <div id="loginCardLogo" class="login-logo">MO</div>
+        <h2>Selamat Datang</h2>
+        <p id="loginCardSubtitle" class="subtitle">Masuk ke <span id="loginCardAppName">SI-MANTAP</span></p>
+
+        <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="Masukkan email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="relative">
+              <input type="password" id="password" class="form-input" placeholder="Masukkan password" required>
+              <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" id="loginBtn" class="btn btn-primary w-full justify-center py-3 text-base font-semibold mt-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            Masuk
+          </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+          <p class="text-sm text-gray-500">Belum punya akun? <a href="register.html" class="text-emerald-600 font-semibold hover:underline">Daftar</a></p>
+          <p class="text-xs text-gray-400 mt-3">Powered by Kang Misbah</p>
+        </div>
+
+        <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+          <p class="text-xs text-gray-500 font-medium mb-1">Belum punya akun? Klik "Daftar" di atas untuk mendaftar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="text-center"><div class="spinner"></div><p class="mt-4 text-gray-600 font-medium">Memproses...</p></div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="js/config.js"></script>
+  <script>
+    // Load Supabase CDN async agar tidak blok script lain
+    (function(){
+      var s = document.createElement('script');
+      s.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      s.async = true;
+      s.onload = function(){
+        try { initSupabase(); } catch(e) {}
+      };
+      s.onerror = function(){ console.warn('Supabase CDN gagal dimuat'); };
+      document.head.appendChild(s);
+    })();
+  </script>
+  <script src="js/sync.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/seed.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try { initSupabase(); } catch(e) { console.warn('initSupabase error:', e); }
+      await DB.pullAll();
+      try { initLocalData(); } catch(e) { console.warn('initLocalData error:', e); }
+      if (Auth.checkSession()) window.location.href = 'app.html';
+      applyLoginSettings();
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'mops_settings') applyLoginSettings();
+      });
+    });
+
+    function applyLoginSettings() {
+      try {
+        const s = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+        const logoText = s.logoText || 'MO';
+        const logoColor = s.logoColor || '#059669';
+        const appName = s.appName || 'SI-MANTAP';
+        const tagline = s.appTagline || 'Sistem Informasi Madrasah';
+
+        document.getElementById('loginLogoText').textContent = logoText;
+        document.getElementById('loginLogoText').style.color = '#D4AF37';
+        document.getElementById('loginCardLogo').textContent = logoText;
+
+        document.getElementById('loginAppName').textContent = appName;
+        document.getElementById('loginCardAppName').textContent = appName;
+        document.getElementById('loginTagline').textContent = tagline;
+        document.title = 'Login - ' + appName;
+
+        if (s.appLogo) {
+          document.getElementById('loginLogoBox').innerHTML = '<img src="' + s.appLogo + '" style="width:100%;height:100%;object-fit:contain">';
+          document.getElementById('loginCardLogo').innerHTML = '<img src="' + s.appLogo + '" style="width:100%;height:100%;object-fit:contain">';
+        } else {
+          document.getElementById('loginLogoBox').innerHTML = '<span id="loginLogoText" class="text-3xl font-extrabold" style="color:#D4AF37">' + logoText + '</span>';
+          document.getElementById('loginCardLogo').innerHTML = logoText;
+        }
+
+        if (s.madrasahName) {
+          document.getElementById('loginDesc').textContent = s.madrasahName + ' — ' + tagline;
+        }
+
+        const faviconColor = logoColor || '059669';
+        const faviconLetter = logoText.substring(0,2).toUpperCase();
+        document.getElementById('loginFavicon').href =
+          "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
+          "<rect fill='%23" + faviconColor.replace('#','') + "' rx='20' width='100' height='100'/>" +
+          "<text x='50' y='65' text-anchor='middle' font-size='36' font-weight='bold' fill='%23D4AF37'>" + faviconLetter + "</text></svg>";
+      } catch(e) {}
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const errDiv = document.getElementById('login-error');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> Masuk...';
+      errDiv.classList.add('hidden');
+
+      try {
+        const emailVal = document.getElementById('email').value;
+        const passVal = document.getElementById('password').value;
+
+        if (!emailVal || !passVal) {
+          errDiv.textContent = 'Email dan password harus diisi';
+          errDiv.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Masuk';
+          return;
+        }
+
+        const result = await Auth.login(emailVal, passVal);
+
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Masuk';
+
+        if (result.success) {
+          window.location.href = 'app.html';
+        } else {
+          errDiv.textContent = result.error;
+          errDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        errDiv.textContent = 'Terjadi kesalahan: ' + err.message;
+        errDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Masuk';
+      }
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function showToast(type, message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = message;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+  </script>
+</body>
+</html>

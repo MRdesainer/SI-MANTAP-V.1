@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layar Info & Bel - SI-MANTAP</title>
+  <link rel="stylesheet" href="css/signage.css">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23059669' rx='20' width='100' height='100'/><text x='50' y='65' text-anchor='middle' font-size='36' font-weight='bold' fill='%23D4AF37'>MO</text></svg>">
+</head>
+<body>
+  <div id="signageApp" class="signage-app">
+    <!-- ISLAMIC GEOMETRIC BACKGROUND -->
+    <div class="islamic-bg-pattern"></div>
+
+    <!-- HEADER -->
+    <header class="signage-header">
+      <div class="header-left">
+        <div id="signageLogo" class="header-logo">
+          <span id="logoText">MO</span>
+        </div>
+        <div class="header-info">
+          <h1 id="madrasahName" class="madrasah-name">MI BUSTANUL ULUM CURAHKALONG 01</h1>
+          <p id="madrasahTagline" class="madrasah-tagline">Sistem Informasi Madrasah</p>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="bismillah" id="bismillahText">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+      </div>
+      <div class="header-right">
+        <div id="bellStatus" class="bell-indicator" title="Status Bel Otomatis">
+          <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="bell-dot" id="bellDot"></span>
+          <span class="bell-label" id="bellLabel">ON</span>
+        </div>
+        <div id="quietModeBadge" class="quiet-badge hidden" title="Mode Senyap Aktif">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+          SENYAP
+        </div>
+        <a href="app.html" class="btn-back" title="Kembali ke Aplikasi">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Kembali
+        </a>
+      </div>
+    </header>
+
+    <!-- RUNNING TEXT -->
+    <div class="running-text-bar">
+      <div class="running-text-content">
+        <span id="runningText" class="running-text-inner"></span>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <main class="signage-main">
+      <!-- LEFT COLUMN -->
+      <div class="col-left">
+        <!-- Clock Card -->
+        <div class="card clock-card">
+          <div class="clock-ornament top-left"></div>
+          <div class="clock-ornament top-right"></div>
+          <div class="clock-display">
+            <div id="clockTime" class="clock-time">00:00:00</div>
+            <div id="clockDate" class="clock-date">Senin, 1 Januari 2026</div>
+            <div id="clockHijri" class="clock-hijri"></div>
+          </div>
+          <div id="countdownBox" class="countdown-box">
+            <div class="countdown-label" id="countdownLabel">Menuju bel selanjutnya</div>
+            <div id="countdownTime" class="countdown-time">00:00</div>
+          </div>
+        </div>
+
+        <!-- Current Lesson Card -->
+        <div class="card current-lesson-card">
+          <div class="card-badge">Sedang Berlangsung</div>
+          <div id="currentLesson" class="lesson-content">
+            <div class="lesson-number" id="lessonNumber">Pelajaran ke-1</div>
+            <div class="lesson-subject" id="lessonSubject">---</div>
+            <div class="lesson-teacher" id="lessonTeacher">Guru: ---</div>
+            <div class="lesson-class" id="lessonClass">Kelas: Semua Kelas</div>
+          </div>
+          <div id="noLesson" class="no-lesson hidden">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="no-lesson-text">Saat ini tidak ada pelajaran</div>
+          </div>
+        </div>
+
+        <!-- Bell Timeline -->
+        <div class="card bell-timeline-card">
+          <div class="card-badge">Jadwal Bel Hari Ini</div>
+          <div id="bellTimeline" class="bell-timeline"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-right">
+        <!-- Upcoming Schedule -->
+        <div class="card schedule-card">
+          <div class="card-badge">Jadwal Berikutnya</div>
+          <div id="upcomingSchedule" class="schedule-list"></div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card announcement-card">
+          <div class="card-badge">Pengumuman</div>
+          <div id="announcementContent" class="announcement-content"></div>
+        </div>
+
+        <!-- Daily Hadith -->
+        <div class="card hadith-card">
+          <div class="hadith-ornament"></div>
+          <div class="card-badge">Hadits Hari Ini</div>
+          <div id="hadithContent" class="hadith-content">
+            <div class="hadith-text" id="hadithText"></div>
+            <div class="hadith-source" id="hadithSource"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- BELL POPUP OVERLAY -->
+    <div id="bellPopup" class="bell-popup hidden">
+      <div class="bell-popup-content">
+        <div class="bell-popup-icon" id="bellPopupIcon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        </div>
+        <div class="bell-popup-text" id="bellPopupText">BEL BERBUNYI</div>
+        <div class="bell-popup-sub" id="bellPopupSub">Pelajaran baru dimulai</div>
+        <div class="bell-popup-time" id="bellPopupTime"></div>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN BUTTON -->
+    <button id="fullscreenBtn" class="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+    </button>
+
+    <!-- FOOTER -->
+    <footer class="signage-footer">
+      <span>Designed & Developed by <strong>Kang Misbah</strong></span>
+      <span id="bellLogCount"></span>
+    </footer>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/signage.js"></script>
+</body>
+</html>
