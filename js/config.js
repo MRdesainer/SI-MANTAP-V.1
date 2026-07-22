@@ -15,10 +15,12 @@ function initSupabase() {
     return null;
   }
   try {
-    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else if (typeof window._supabase !== 'undefined') {
-      supabase = window._supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const S = window.supabase || window._supabase;
+    if (S && S.createClient) {
+      supabase = S.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.warn('Supabase JS library belum dimuat dari CDN.');
+      supabase = null;
     }
   } catch (e) {
     console.warn('Gagal init Supabase:', e.message);
