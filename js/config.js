@@ -5,28 +5,26 @@
 const SUPABASE_URL = 'https://qbuvszefnmymagrlhrje.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFidXZzemVmbm15bWFncmxocmplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3Mzg1NjIsImV4cCI6MjEwMDMxNDU2Mn0.3hvx3RkR6r3r9iicBf_gJIwmNF16O6WoxS9q2Hu-_ow';
 
-let supabase = null;
+// 'supabase' global di-declare oleh supabase.min.js (UMD build)
+// initSupabase() akan meng-overwrite jadi client instance
 
 function initSupabase() {
-  // Skip jika masih placeholder
   if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR_') || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('YOUR_')) {
     console.warn('Supabase belum dikonfigurasi. Mode offline (localStorage).');
-    supabase = null;
     return null;
   }
   try {
-    const S = window.supabase || window._supabase;
-    if (S && S.createClient) {
-      supabase = S.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+      supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return supabase;
     } else {
-      console.warn('Supabase JS library belum dimuat dari CDN.');
-      supabase = null;
+      console.warn('Supabase JS library belum dimuat.');
+      return null;
     }
   } catch (e) {
     console.warn('Gagal init Supabase:', e.message);
-    supabase = null;
+    return null;
   }
-  return supabase;
 }
 
 const APP_CONFIG = {
