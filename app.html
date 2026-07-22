@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SI-MANTAP - Sistem Informasi Madrasah</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="js/config.js"></script>
   <script src="js/supabase.min.js"></script>
+  <script src="js/config.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/ppdb.css">
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -217,6 +217,6 @@
   <script src="js/pages-bell.js"></script>
   <script src="js/pages-ppdb.js"></script>
   <script src="js/pages-import.js"></script>
-  <script>document.addEventListener('DOMContentLoaded', async () => { try { initSupabase(); } catch(e) {} await DB.pullAll(); DB.subscribeRealtime(); initLocalData(); App.init(); });</script>
+  <script>document.addEventListener('DOMContentLoaded', async () => { try { initSupabase(); } catch(e) { console.warn('initSupabase:', e); } if (!Auth.checkSession()) { window.location.href = 'index.html'; return; } try { await DB.pullAll(); } catch(e) { console.warn('pullAll:', e); } try { DB.subscribeRealtime(); } catch(e) {} try { initLocalData(); } catch(e) {} App.init(); });</script>
 </body>
 </html>

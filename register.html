@@ -82,8 +82,8 @@
   </div>
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="js/config.js"></script>
   <script src="js/supabase.min.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/sync.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
@@ -92,8 +92,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       try { initSupabase(); } catch(e) {}
-      await DB.pullAll();
-      try { initLocalData(); } catch(e) {}
       if (Auth.checkSession()) window.location.href = 'app.html';
       applyRegSettings();
       window.addEventListener('storage', (e) => {
@@ -164,7 +162,7 @@
         }
 
         const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
-        const madrasahId = settings.madrasahId || 'mad_001';
+        const madrasahId = settings.madrasahId || null;
         const result = await Auth.register(email, pass, nama, role, madrasahId);
 
         btn.disabled = false;
