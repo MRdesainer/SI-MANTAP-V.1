@@ -90,7 +90,7 @@
     // Load Supabase CDN async agar tidak blok script lain
     (function(){
       var s = document.createElement('script');
-      s.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      s.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';
       s.async = true;
       s.onload = function(){
         try { initSupabase(); } catch(e) {}
