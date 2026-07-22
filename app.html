@@ -6,10 +6,7 @@
   <title>SI-MANTAP - Sistem Informasi Madrasah</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/config.js"></script>
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-    window._supabase = { createClient };
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async onload="window._supabaseReady=true;"></script>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/ppdb.css">
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -220,6 +217,6 @@
   <script src="js/pages-bell.js"></script>
   <script src="js/pages-ppdb.js"></script>
   <script src="js/pages-import.js"></script>
-  <script>document.addEventListener('DOMContentLoaded', async () => { try { initSupabase(); } catch(e) {} await DB.pullAll(); DB.subscribeRealtime(); initLocalData(); App.init(); });</script>
+  <script>document.addEventListener('DOMContentLoaded', async () => { function tryInit() { if (window._supabaseReady || window._supabase || window.supabase) { try { initSupabase(); } catch(e) {} return true; } return false; } if (!tryInit()) { await new Promise(r => { let t=0; const iv=setInterval(()=>{t++;if(tryInit()||t>50){clearInterval(iv);r();}},200); }); } await DB.pullAll(); DB.subscribeRealtime(); initLocalData(); App.init(); });</script>
 </body>
 </html>

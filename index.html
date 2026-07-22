@@ -86,18 +86,27 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <script src="js/config.js"></script>
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-    window._supabase = { createClient };
-  </script>
   <script src="js/sync.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/seed.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async onload="window._supabaseReady=true;"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      try { initSupabase(); } catch(e) { console.warn('initSupabase error:', e); }
+      function tryInit() {
+        if (window._supabaseReady || window._supabase || window.supabase) {
+          try { initSupabase(); } catch(e) { console.warn('initSupabase error:', e); }
+          return true;
+        }
+        return false;
+      }
+      if (!tryInit()) {
+        await new Promise(r => {
+          let tries = 0;
+          const interval = setInterval(() => { tries++; if (tryInit() || tries > 50) { clearInterval(interval); r(); } }, 200);
+        });
+      }
       await DB.pullAll();
       try { initLocalData(); } catch(e) { console.warn('initLocalData error:', e); }
       if (Auth.checkSession()) window.location.href = 'app.html';
