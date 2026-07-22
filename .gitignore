@@ -5,6 +5,11 @@
 # Python server (offline only, tidak perlu untuk GitHub Pages)
 server.py
 
+# Node modules (hanya untuk download supabase-js)
+node_modules/
+package.json
+package-lock.json
+
 # OS files
 Thumbs.db
 .DS_Store

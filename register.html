@@ -83,7 +83,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <script src="js/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async onload="window._supabaseReady=true;"></script>
+  <script src="js/supabase.min.js"></script>
   <script src="js/sync.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
@@ -91,8 +91,7 @@
   <script src="js/seed.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      function tryInit() { if (window._supabaseReady || window._supabase || window.supabase) { try { initSupabase(); } catch(e) {} return true; } return false; }
-      if (!tryInit()) { await new Promise(r => { let t=0; const iv=setInterval(()=>{t++;if(tryInit()||t>50){clearInterval(iv);r();}},200); }); }
+      try { initSupabase(); } catch(e) {}
       await DB.pullAll();
       try { initLocalData(); } catch(e) {}
       if (Auth.checkSession()) window.location.href = 'app.html';

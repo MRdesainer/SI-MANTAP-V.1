@@ -91,22 +91,10 @@
   <script src="js/auth.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/seed.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async onload="window._supabaseReady=true;"></script>
+  <script src="js/supabase.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      function tryInit() {
-        if (window._supabaseReady || window._supabase || window.supabase) {
-          try { initSupabase(); } catch(e) { console.warn('initSupabase error:', e); }
-          return true;
-        }
-        return false;
-      }
-      if (!tryInit()) {
-        await new Promise(r => {
-          let tries = 0;
-          const interval = setInterval(() => { tries++; if (tryInit() || tries > 50) { clearInterval(interval); r(); } }, 200);
-        });
-      }
+      try { initSupabase(); } catch(e) { console.warn('initSupabase error:', e); }
       await DB.pullAll();
       try { initLocalData(); } catch(e) { console.warn('initLocalData error:', e); }
       if (Auth.checkSession()) window.location.href = 'app.html';
