@@ -498,10 +498,15 @@ const Pages = {
   async _saveGuru(e, id) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
-    if (id) { await DB.update('guru', id, data); showToast('success', 'Guru diperbarui'); }
-    else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('guru', data); showToast('success', 'Guru ditambahkan'); }
-    Realtime.broadcast('data_changed', 'guru');
-    closeModal(); this.renderGuru();
+    try {
+      if (id) { await DB.update('guru', id, data); showToast('success', 'Guru diperbarui'); }
+      else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('guru', data); showToast('success', 'Guru ditambahkan'); }
+      Realtime.broadcast('data_changed', 'guru');
+      closeModal(); this.renderGuru();
+    } catch(err) {
+      console.error('Simpan guru gagal:', err);
+      showToast('error', 'Gagal menyimpan: ' + (err.message || 'Periksa koneksi database'));
+    }
   },
 
   async _deleteGuru(id) {
@@ -580,10 +585,15 @@ const Pages = {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
     data.status_aktif = true;
-    if (id) { await DB.update('murid', id, data); showToast('success', 'Siswa diperbarui'); }
-    else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('murid', data); showToast('success', 'Siswa ditambahkan'); }
-    Realtime.broadcast('data_changed', 'murid');
-    closeModal(); this.renderMurid();
+    try {
+      if (id) { await DB.update('murid', id, data); showToast('success', 'Siswa diperbarui'); }
+      else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('murid', data); showToast('success', 'Siswa ditambahkan'); }
+      Realtime.broadcast('data_changed', 'murid');
+      closeModal(); this.renderMurid();
+    } catch(err) {
+      console.error('Simpan murid gagal:', err);
+      showToast('error', 'Gagal menyimpan: ' + (err.message || 'Periksa koneksi database'));
+    }
   },
 
   async _deleteMurid(id) {

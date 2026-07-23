@@ -189,6 +189,15 @@
     /* Footer */
     .ppdb-footer { text-align: center; padding: 24px; font-size: 12px; color: #9ca3af; }
 
+    /* Running Text */
+    .ppdb-running-text { background: linear-gradient(90deg, #065f46 0%, #047857 40%, #059669 70%, #047857 100%); border-bottom: 2px solid #D4AF37; overflow: hidden; white-space: nowrap; height: 40px; display: flex; align-items: center; }
+    .ppdb-running-text::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 40px; background: linear-gradient(90deg, #065f46, transparent); z-index: 2; pointer-events: none; }
+    .ppdb-running-text::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 40px; background: linear-gradient(270deg, #047857, transparent); z-index: 2; pointer-events: none; }
+    .ppdb-running-text-content { display: inline-block; animation: ppdbScroll 45s linear infinite; padding-left: 100%; }
+    .ppdb-running-text-inner { display: inline-block; font-family: 'Amiri', 'Times New Roman', serif; font-size: 15px; font-weight: 600; color: #FEF3C7; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .ppdb-running-text:hover .ppdb-running-text-content { animation-play-state: paused; }
+    @keyframes ppdbScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
     /* Responsive */
     @media (max-width: 640px) {
       .ppdb-hero { padding: 32px 16px 48px; }
@@ -218,6 +227,13 @@
     <div class="ppdb-hero-badge">
       <span class="ppdb-badge-dot"></span>
       Pendaftaran sedang dibuka
+    </div>
+  </div>
+
+  <!-- Running Text -->
+  <div class="ppdb-running-text">
+    <div class="ppdb-running-text-content">
+      <span id="ppdbRunningTextInner" class="ppdb-running-text-inner"></span>
     </div>
   </div>
 
@@ -289,6 +305,43 @@
 
   <script>
     try { initSupabase(); } catch(e) { console.warn('initSupabase:', e); }
+
+    // Load running text and PPDB settings from localStorage
+    (function() {
+      const rtEl = document.getElementById('ppdbRunningTextInner');
+      if (rtEl) {
+        const rt = localStorage.getItem('mops_running_text') || '';
+        if (rt) {
+          rtEl.textContent = rt;
+        } else {
+          rtEl.textContent = 'Selamat Datang di PPDB Online MI Bustanul Ulum Curahkalong 01 — Silakan mendaftarkan putra/putri Anda';
+        }
+      }
+      // Refresh running text when storage changes (from admin panel)
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'mops_running_text' && rtEl) {
+          rtEl.textContent = e.newValue || 'Selamat Datang di PPDB Online MI Bustanul Ulum Curahkalong 01';
+        }
+      });
+
+      // Load PPDB settings
+      try {
+        const ppdbSet = JSON.parse(localStorage.getItem('mops_ppdb_settings') || '{}');
+        if (ppdbSet.tahunPelajaran) {
+          const heroSub = document.querySelector('.ppdb-hero p');
+          if (heroSub) heroSub.textContent = 'MI Bustanul Ulum Curahkalong 01 — Tahun Pelajaran ' + ppdbSet.tahunPelajaran;
+        }
+        if (ppdbSet.status === 'tutup') {
+          const badge = document.querySelector('.ppdb-hero-badge');
+          if (badge) {
+            badge.innerHTML = '<span style="width:8px;height:8px;background:#ef4444;border-radius:50%;display:inline-block"></span> Pendaftaran telah ditutup';
+            badge.style.background = 'rgba(239,68,68,0.2)';
+          }
+          const btnNext = document.getElementById('btnNext');
+          if (btnNext) { btnNext.disabled = true; btnNext.style.opacity = '0.5'; }
+        }
+      } catch(e) {}
+    })();
     let step = 1;
     const totalSteps = 4;
     let data = {};
@@ -581,7 +634,7 @@
         asal_sekolah: data.asal_sekolah,
         jenjang: data.jenjang,
         jenis_pendaftaran: data.jenis_daftar || 'baru',
-        tahun_penerimaan: '2025/2026',
+        tahun_penerimaan: (function(){ try { return JSON.parse(localStorage.getItem('mops_ppdb_settings')||'{}').tahunPelajaran || '2025/2026'; } catch(e) { return '2025/2026'; } })(),
         tanggal_daftar: new Date().toISOString(),
         status: 'pending',
         madrasah_id: 'mad_001'

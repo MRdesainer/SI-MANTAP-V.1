@@ -573,6 +573,7 @@ const PPDBWizard = {
 Pages.renderPPDB = function() {
   const page = document.getElementById('activePage');
   const ppdb = JSON.parse(localStorage.getItem('mops_ppdb_pendaftaran') || '[]');
+  const ppdbSettings = JSON.parse(localStorage.getItem('mops_ppdb_settings') || '{}');
   const stats = {
     total: ppdb.length,
     pending: ppdb.filter(p => p.status === 'pending').length,
@@ -582,6 +583,59 @@ Pages.renderPPDB = function() {
   };
 
   page.innerHTML = `
+    <!-- PPDB SETTINGS (Admin Only) -->
+    <div class="card mb-6">
+      <div class="card-header flex items-center justify-between" style="cursor:pointer" onclick="document.getElementById('ppdbSettingsBody').classList.toggle('hidden')">
+        <h3 class="font-bold flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Pengaturan PPDB
+        </h3>
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div id="ppdbSettingsBody" class="card-body hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Tahun Pelajaran</label>
+            <input type="text" class="form-input" id="ppdbSetTahun" value="${ppdbSettings.tahunPelajaran || PPDBWizard.getTahunPelajaran()}" placeholder="2025/2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status Pendaftaran</label>
+            <select class="form-select" id="ppdbSetStatus">
+              <option value="buka" ${ppdbSettings.status !== 'tutup' ? 'selected' : ''}>Buka</option>
+              <option value="tutup" ${ppdbSettings.status === 'tutup' ? 'selected' : ''}>Tutup</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Buka Pendaftaran</label>
+            <input type="date" class="form-input" id="ppdbSetTglBuka" value="${ppdbSettings.tglBuka || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Tutup Pendaftaran</label>
+            <input type="date" class="form-input" id="ppdbSetTglTutup" value="${ppdbSettings.tglTutup || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kuota MI</label>
+            <input type="number" class="form-input" id="ppdbSetKuotaMI" value="${ppdbSettings.kuotaMI || 60}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kuota MTs</label>
+            <input type="number" class="form-input" id="ppdbSetKuotaMTs" value="${ppdbSettings.kuotaMTs || 0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kuota MA</label>
+            <input type="number" class="form-input" id="ppdbSetKuotaMA" value="${ppdbSettings.kuotaMA || 0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kuota MAK</label>
+            <input type="number" class="form-input" id="ppdbSetKuotaMAK" value="${ppdbSettings.kuotaMAK || 0}" min="0">
+          </div>
+        </div>
+        <div class="flex justify-end mt-4 pt-4 border-t">
+          <button class="btn btn-primary" onclick="Pages._savePPDBSettings()">Simpan Pengaturan</button>
+        </div>
+      </div>
+    </div>
+
     <div class="mb-6">
       <button class="ppdb-btn ppdb-btn-primary ppdb-btn-lg" onclick="PPDBWizard.init()">
         <svg class="ppdb-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
@@ -746,4 +800,19 @@ Pages._exportPPDB = function() {
   a.download = `ppdb_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   showToast('success', 'File CSV berhasil diunduh');
+};
+
+Pages._savePPDBSettings = function() {
+  const settings = {
+    tahunPelajaran: document.getElementById('ppdbSetTahun').value || PPDBWizard.getTahunPelajaran(),
+    status: document.getElementById('ppdbSetStatus').value || 'buka',
+    tglBuka: document.getElementById('ppdbSetTglBuka').value || '',
+    tglTutup: document.getElementById('ppdbSetTglTutup').value || '',
+    kuotaMI: parseInt(document.getElementById('ppdbSetKuotaMI').value) || 0,
+    kuotaMTs: parseInt(document.getElementById('ppdbSetKuotaMTs').value) || 0,
+    kuotaMA: parseInt(document.getElementById('ppdbSetKuotaMA').value) || 0,
+    kuotaMAK: parseInt(document.getElementById('ppdbSetKuotaMAK').value) || 0,
+  };
+  localStorage.setItem('mops_ppdb_settings', JSON.stringify(settings));
+  showToast('success', 'Pengaturan PPDB disimpan');
 };

@@ -628,6 +628,7 @@ Pages.renderPengumuman = function() {
     </div>
 
     <!-- RUNNING TEXT EDITOR -->
+    ${Auth.isAdmin() ? `
     <div class="card mb-4">
       <div class="card-header"><h3 class="font-bold">Running Text (Teks Berjalan)</h3></div>
       <div class="card-body">
@@ -641,12 +642,20 @@ Pages.renderPengumuman = function() {
         </div>
       </div>
     </div>
+    ` : `
+    <div class="card mb-4">
+      <div class="card-header"><h3 class="font-bold">Running Text (Teks Berjalan)</h3></div>
+      <div class="card-body">
+        <div class="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">${runningText || '<em>Tidak ada running text</em>'}</div>
+      </div>
+    </div>
+    `}
 
     <!-- PENGUMUMAN CRUD -->
     <div class="card mb-4">
       <div class="card-header flex items-center justify-between">
         <h3 class="font-bold">Daftar Pengumuman</h3>
-        <button class="btn btn-primary" onclick="Pages._formPengumuman()">+ Tambah Pengumuman</button>
+        ${Auth.isAdmin() ? `<button class="btn btn-primary" onclick="Pages._formPengumuman()">+ Tambah Pengumuman</button>` : ''}
       </div>
       <div class="table-container">
         <table>
@@ -670,10 +679,12 @@ Pages.renderPengumuman = function() {
                   <td><span class="badge ${p.prioritas === 'tinggi' ? 'badge-red' : p.prioritas === 'sedang' ? 'badge-yellow' : 'badge-blue'}">${p.prioritas || 'normal'}</span></td>
                   <td><span class="badge ${p.aktif !== false ? 'badge-green' : 'badge-red'}">${p.aktif !== false ? 'Aktif' : 'Nonaktif'}</span></td>
                   <td>
+                    ${Auth.isAdmin() ? `
                     <div class="flex gap-1">
                       <button class="btn btn-sm btn-outline" onclick="Pages._formPengumuman('${p.id}')">Edit</button>
                       <button class="btn btn-sm btn-outline text-red-500" onclick="Pages._deletePengumuman('${p.id}')">Hapus</button>
                     </div>
+                    ` : '<span class="text-xs text-gray-400">-</span>'}
                   </td>
                 </tr>
               `).join('')}
