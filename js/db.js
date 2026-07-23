@@ -199,7 +199,7 @@ const DB = {
       'semester', 'ruang', 'penilaian', 'rapor', 'sarana', 'keuangan_transaksi',
       'keuangan_kategori', 'keuangan_anggaran', 'rapbm', 'ppdb_pendaftaran',
       'madrasah', 'pengumuman', 'running_text', 'bel_jadwal', 'bel_log',
-      'kritik_saran', 'settings', 'prestasi', 'ortu', 'ortu_murid', 'profiles'
+      'kritik_saran', 'prestasi', 'ortu', 'ortu_murid', 'profiles'
     ];
     for (const table of tables) {
       try {
@@ -209,6 +209,17 @@ const DB = {
         }
       } catch(e) { console.warn(`[DB] pull ${table} gagal:`, e.message); }
     }
+    try {
+      const { data: sRows, error: sErr } = await supabase.from('settings').select('*');
+      if (!sErr && sRows && sRows.length > 0) {
+        const appRow = sRows.find(r => r.key === 'app_settings');
+        if (appRow && appRow.value) {
+          const local = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+          const merged = { ...appRow.value, ...local };
+          localStorage.setItem('mops_settings', JSON.stringify(merged));
+        }
+      }
+    } catch(e) { console.warn('[DB] pull settings gagal:', e.message); }
   },
 
   _realtimeChannel: null,

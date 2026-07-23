@@ -778,6 +778,7 @@ const Pages = {
       <td><span class="badge ${sb}">${u.is_active ? 'Aktif' : 'Non-Aktif'}</span></td>
       <td class="text-sm">${u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID') : '-'}</td>
       <td><div class="flex gap-1 flex-wrap">
+        <button class="btn btn-sm btn-outline" onclick="Pages._formEditUser('${u.id}','${(u.nama_lengkap||'').replace(/'/g,"\\'")}','${u.email}','${u.role}')">Edit</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._formChangeRole('${u.id}','${u.role}')">Role</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._toggleUserActive('${u.id}',${u.is_active})">${u.is_active ? 'Non-Aktifkan' : 'Aktifkan'}</button>
       </div></td>
@@ -815,6 +816,40 @@ const Pages = {
   async _toggleUserActive(userId, currentActive) {
     await DB.update('profiles', userId, { is_active: !currentActive });
     showToast('success', currentActive ? 'User dinonaktifkan' : 'User diaktifkan');
+    this.renderManajemenUser();
+  },
+
+  _formEditUser(userId, nama, email, role) {
+    openModal('Edit Profil User', `<form onsubmit="Pages._saveEditUser(event,'${userId}')">
+      <div class="space-y-4">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-input" name="nama_lengkap" value="${nama}" required></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" name="email" value="${email}" required></div>
+        <div class="form-group"><label class="form-label">Password Baru (kosongkan jika tidak diubah)</label><input type="password" class="form-input" name="password" minlength="6" placeholder="Minimal 6 karakter"></div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>`);
+  },
+
+  async _saveEditUser(e, userId) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    const updates = { nama_lengkap: data.nama_lengkap, email: data.email };
+    if (data.password && data.password.trim()) {
+      updates.password = data.password;
+    }
+    await DB.update('profiles', userId, updates);
+
+    if (userId === Auth.currentUser?.id) {
+      Object.assign(Auth.currentUser, updates);
+      localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
+      this.updateUserInfo();
+    }
+
+    showToast('success', 'Profil user berhasil diubah');
+    closeModal();
     this.renderManajemenUser();
   },
 };

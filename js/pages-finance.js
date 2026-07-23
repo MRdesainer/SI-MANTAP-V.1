@@ -405,6 +405,7 @@ Pages._previewLogo = function(key, input) {
     const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
     settings[key] = e.target.result;
     localStorage.setItem('mops_settings', JSON.stringify(settings));
+    Pages._syncSettingsToSupabase(settings);
     Realtime.broadcast('settings_changed', settings);
     const preview = document.getElementById('preview' + key.charAt(0).toUpperCase() + key.slice(1));
     if (preview) preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain">`;
@@ -417,6 +418,7 @@ Pages._removeLogo = function(key) {
   const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
   delete settings[key];
   localStorage.setItem('mops_settings', JSON.stringify(settings));
+  Pages._syncSettingsToSupabase(settings);
   Realtime.broadcast('settings_changed', settings);
   Pages.renderPengaturan();
   Pages._refreshLogoDisplay(key);
@@ -440,6 +442,7 @@ Pages._toggleBellFromPengaturan = function() {
   const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
   settings.bellEnabled = settings.bellEnabled === false ? true : false;
   localStorage.setItem('mops_settings', JSON.stringify(settings));
+  Pages._syncSettingsToSupabase(settings);
   Realtime.broadcast('settings_changed', settings);
   showToast('success', settings.bellEnabled ? 'Sistem bel diaktifkan' : 'Sistem bel dinonaktifkan');
   Pages.renderPengaturan();
@@ -449,17 +452,39 @@ Pages._toggleQuietFromPengaturan = function() {
   const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
   settings.bellQuietMode = !settings.bellQuietMode;
   localStorage.setItem('mops_settings', JSON.stringify(settings));
+  Pages._syncSettingsToSupabase(settings);
   Realtime.broadcast('settings_changed', settings);
   showToast('success', settings.bellQuietMode ? 'Mode senyap diaktifkan' : 'Mode senyap dimatikan');
   Pages.renderPengaturan();
 };
 
-Pages._saveSettings = function(e) {
+Pages._syncSettingsToSupabase = async function(settings) {
+  try {
+    const existing = await DB.getAll('settings', { key: 'app_settings' });
+    if (existing.length > 0) {
+      await DB.update('settings', existing[0].id, { value: settings });
+    } else {
+      await DB.insert('settings', { key: 'app_settings', value: settings });
+    }
+  } catch(e) { console.warn('Gagal sync settings:', e); }
+};
+
+Pages._saveSettings = async function(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target).entries());
   const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
   Object.assign(settings, data);
   localStorage.setItem('mops_settings', JSON.stringify(settings));
+
+  try {
+    const existing = await DB.getAll('settings', { key: 'app_settings' });
+    if (existing.length > 0) {
+      await DB.update('settings', existing[0].id, { value: settings });
+    } else {
+      await DB.insert('settings', { key: 'app_settings', value: settings });
+    }
+  } catch(e) { console.warn('Gagal sync settings ke Supabase:', e); }
+
   Realtime.broadcast('settings_changed', settings);
   showToast('success', 'Pengaturan berhasil disimpan! Halaman akan dimuat ulang.');
   setTimeout(() => location.reload(), 1000);
@@ -496,14 +521,16 @@ Pages._changePassword = async function(e) {
     return;
   }
 
-  await DB.update('profiles', user.id, { password: newPassword }).catch(() => {
+  try {
+    await DB.update('profiles', user.id, { password: newPassword });
+  } catch(e) {
     const profiles = JSON.parse(localStorage.getItem('mops_profiles') || '[]');
     const idx = profiles.findIndex(p => p.id === user.id);
     if (idx >= 0) {
       profiles[idx].password = newPassword;
       localStorage.setItem('mops_profiles', JSON.stringify(profiles));
     }
-  });
+  }
 
   Auth.currentUser.password = newPassword;
   localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
