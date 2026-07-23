@@ -3,7 +3,6 @@
 -- ============================================
 -- Buka: Supabase Dashboard → SQL Editor → New Query
 -- Paste SEMUA isi ini → klik "Run" (atau Ctrl+Enter)
--- Di bawah akan muncul hasil verifikasi
 -- ============================================
 
 -- 1. Hapus apapun yang menghalangi
@@ -62,15 +61,16 @@ ON CONFLICT (email) DO UPDATE SET
   password = EXCLUDED.password,
   is_active = true;
 
--- 8. Drop semua RLS policy yang pakai auth.uid()
+-- 8. Drop semua RLS policy
 DO $$ DECLARE r RECORD; BEGIN
   FOR r IN SELECT tablename, policyname FROM pg_policies WHERE schemaname = 'public' LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
   END LOOP;
 END $$;
 
--- 9. VERIFIKASI (WAJIB muncul hasil di bawah!)
--- Jika kolom "id" tidak null = SUKSES
-SELECT id, email, nama_lengkap, role, is_active FROM profiles WHERE email = 'admin@si-mantap.go.id';
+-- 9. FORCE PostgREST reload schema (INI PENTING!)
+-- Tanpa ini, API tidak lihat tabel baru setelah DROP+CREATE
+SELECT pgrst.reload();
 
--- Jika muncul error, copy paste errornya dan kasih tau saya
+-- 10. VERIFIKASI
+SELECT id, email, nama_lengkap, role, is_active FROM profiles WHERE email = 'admin@si-mantap.go.id';

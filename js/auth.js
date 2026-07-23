@@ -26,23 +26,32 @@ const Auth = {
         .maybeSingle();
 
       if (error) {
-        console.error('[Auth] Query error:', error);
+        console.error('[Auth] Query error:', JSON.stringify(error));
         if (error.message && error.message.includes('relation "profiles" does not exist')) {
-          return { success: false, error: 'Tabel profiles belum ada! Jalankan FIX_EVERYTHING.sql di Supabase SQL Editor.' };
+          return { success: false, error: 'Tabel profiles belum ada! Jalankan FIX_NOW.sql di Supabase SQL Editor.' };
         }
-        return { success: false, error: 'Gagal mengakses database: ' + (error.message || '') + (error.hint ? ' | ' + error.hint : '') };
+        if (error.message && error.message.includes('permission denied')) {
+          return { success: false, error: 'Permission denied! Jalankan FIX_NOW.sql di Supabase SQL Editor.' };
+        }
+        return { success: false, error: 'DB error: ' + (error.message || '') + (error.hint ? ' | ' + error.hint : '') };
       }
       if (!data) {
-        console.warn('[Auth] Login failed for:', email, '- checking if email exists...');
-        const { data: checkEmail } = await supabase.from('profiles').select('email, role, is_active').eq('email', email).maybeSingle();
-        console.warn('[Auth] Email check result:', checkEmail);
+        console.warn('[Auth] Login failed for:', email);
+        const { data: checkAll, error: checkErr } = await supabase.from('profiles').select('id, email, is_active, role');
+        console.warn('[Auth] All profiles:', JSON.stringify(checkAll), 'checkErr:', JSON.stringify(checkErr));
+        const { data: checkEmail, error: emailErr } = await supabase.from('profiles').select('email, role, is_active').eq('email', email).maybeSingle();
+        console.warn('[Auth] Email check:', JSON.stringify(checkEmail), 'err:', JSON.stringify(emailErr));
+        if (emailErr) {
+          return { success: false, error: 'Gagal cek email: ' + emailErr.message };
+        }
         if (!checkEmail) {
-          return { success: false, error: 'Email "' + email + '" tidak ditemukan di database. Jalankan FIX_EVERYTHING.sql di Supabase SQL Editor.' };
+          const count = checkAll ? checkAll.length : 0;
+          return { success: false, error: 'Email "' + email + '" tidak ditemukan. Total profiles di DB: ' + count + '. Jalankan FIX_NOW.sql, lalu jalankan lagi SELECT pgrst.reload();' };
         }
         if (!checkEmail.is_active) {
           return { success: false, error: 'Akun belum aktif. Hubungi admin untuk mengaktifkan.' };
         }
-        return { success: false, error: 'Password salah. Email ditemukan: ' + checkEmail.email };
+        return { success: false, error: 'Password salah.' };
       }
 
       await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.id);
