@@ -27,10 +27,22 @@ const Auth = {
 
       if (error) {
         console.error('[Auth] Query error:', error);
-        return { success: false, error: 'Gagal mengakses database: ' + (error.message || '') };
+        if (error.message && error.message.includes('relation "profiles" does not exist')) {
+          return { success: false, error: 'Tabel profiles belum ada! Jalankan FIX_EVERYTHING.sql di Supabase SQL Editor.' };
+        }
+        return { success: false, error: 'Gagal mengakses database: ' + (error.message || '') + (error.hint ? ' | ' + error.hint : '') };
       }
       if (!data) {
-        return { success: false, error: 'Email atau password salah, atau akun tidak aktif' };
+        console.warn('[Auth] Login failed for:', email, '- checking if email exists...');
+        const { data: checkEmail } = await supabase.from('profiles').select('email, role, is_active').eq('email', email).maybeSingle();
+        console.warn('[Auth] Email check result:', checkEmail);
+        if (!checkEmail) {
+          return { success: false, error: 'Email "' + email + '" tidak ditemukan di database. Jalankan FIX_EVERYTHING.sql di Supabase SQL Editor.' };
+        }
+        if (!checkEmail.is_active) {
+          return { success: false, error: 'Akun belum aktif. Hubungi admin untuk mengaktifkan.' };
+        }
+        return { success: false, error: 'Password salah. Email ditemukan: ' + checkEmail.email };
       }
 
       await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.id);
