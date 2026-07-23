@@ -498,15 +498,16 @@ const Pages = {
   async _saveGuru(e, id) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
+    if (!data.nama_lengkap || !data.nama_lengkap.trim()) {
+      return showToast('error', 'Nama lengkap wajib diisi');
+    }
     try {
       if (id) {
         await DB.update('guru', id, data);
         showToast('success', 'Guru diperbarui');
       } else {
-        const mid = Auth.currentUser?.madrasah_id;
-        if (mid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mid)) {
-          data.madrasah_id = mid;
-        }
+        const mid = getMadrasahId();
+        if (mid) data.madrasah_id = mid;
         await DB.insert('guru', data);
         showToast('success', 'Guru ditambahkan');
       }
@@ -594,15 +595,16 @@ const Pages = {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
     data.status_aktif = true;
+    if (!data.nama_lengkap || !data.nama_lengkap.trim()) {
+      return showToast('error', 'Nama lengkap wajib diisi');
+    }
     try {
       if (id) {
         await DB.update('murid', id, data);
         showToast('success', 'Siswa diperbarui');
       } else {
-        const mid = Auth.currentUser?.madrasah_id;
-        if (mid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mid)) {
-          data.madrasah_id = mid;
-        }
+        const mid = getMadrasahId();
+        if (mid) data.madrasah_id = mid;
         await DB.insert('murid', data);
         showToast('success', 'Siswa ditambahkan');
       }

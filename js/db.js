@@ -95,6 +95,10 @@ const DB = {
     const db = getDB();
     if (db) {
       const cleaned = this._clean(record);
+      if (!cleaned.madrasah_id && table !== 'profiles' && table !== 'settings' && table !== 'audit_log' && table !== 'users') {
+        const mid = getMadrasahId();
+        if (mid) cleaned.madrasah_id = mid;
+      }
       const { data, error } = await db.from(table).insert(cleaned).select().single();
       if (error) {
         console.error(`[DB] insert ${table} error:`, error);
@@ -195,7 +199,14 @@ const DB = {
   async insertBatch(table, records) {
     const db = getDB();
     if (db) {
-      const cleaned = records.map(r => this._clean(r)).filter(r => {
+      const mid = getMadrasahId();
+      const cleaned = records.map(r => {
+        const c = this._clean(r);
+        if (!c.madrasah_id && mid && table !== 'profiles' && table !== 'settings' && table !== 'audit_log' && table !== 'users') {
+          c.madrasah_id = mid;
+        }
+        return c;
+      }).filter(r => {
         if (table === 'guru' && !r.nama_lengkap) { console.warn('[DB] skip guru tanpa nama:', r); return false; }
         if (table === 'murid' && !r.nama_lengkap) { console.warn('[DB] skip murid tanpa nama:', r); return false; }
         return true;
