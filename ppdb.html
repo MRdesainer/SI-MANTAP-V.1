@@ -288,6 +288,7 @@
   </div>
 
   <script>
+    try { initSupabase(); } catch(e) { console.warn('initSupabase:', e); }
     let step = 1;
     const totalSteps = 4;
     let data = {};
@@ -587,9 +588,13 @@
       };
 
       // Save — Supabase online atau localStorage
-      if (typeof supabase !== 'undefined' && supabase) {
-        await DB.insert('ppdb_pendaftaran', entry);
-      } else {
+      try {
+        if (typeof DB !== 'undefined' && typeof _isOnline === 'function' && _isOnline()) {
+          await DB.insert('ppdb_pendaftaran', entry);
+        } else {
+          throw new Error('offline');
+        }
+      } catch(e) {
         let ppdb = JSON.parse(localStorage.getItem('mops_ppdb_pendaftaran') || '[]');
         ppdb.push(entry);
         localStorage.setItem('mops_ppdb_pendaftaran', JSON.stringify(ppdb));

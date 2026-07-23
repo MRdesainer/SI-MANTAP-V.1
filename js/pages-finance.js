@@ -473,8 +473,41 @@ Pages._showChangePassword = function() {
   </div><div class="flex justify-end gap-2 mt-4 pt-4 border-t"><button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form>`);
 };
 
-Pages._changePassword = function(e) {
+Pages._changePassword = async function(e) {
   e.preventDefault();
+  const form = e.target;
+  const oldPassword = form.old_password.value;
+  const newPassword = form.new_password.value;
+  const confirmPassword = form.confirm_password.value;
+  const user = Auth.currentUser;
+
+  if (newPassword !== confirmPassword) {
+    showToast('error', 'Password baru dan konfirmasi tidak cocok');
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    showToast('error', 'Password baru minimal 6 karakter');
+    return;
+  }
+
+  if (oldPassword !== user.password) {
+    showToast('error', 'Password lama salah');
+    return;
+  }
+
+  await DB.update('profiles', user.id, { password: newPassword }).catch(() => {
+    const profiles = JSON.parse(localStorage.getItem('mops_profiles') || '[]');
+    const idx = profiles.findIndex(p => p.id === user.id);
+    if (idx >= 0) {
+      profiles[idx].password = newPassword;
+      localStorage.setItem('mops_profiles', JSON.stringify(profiles));
+    }
+  });
+
+  Auth.currentUser.password = newPassword;
+  localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
+
   showToast('success', 'Password berhasil diubah');
   closeModal();
 };

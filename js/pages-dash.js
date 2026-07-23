@@ -367,7 +367,7 @@ const Pages = {
     const penilaian = JSON.parse(localStorage.getItem('mops_penilaian') || '[]');
     const today = new Date().toISOString().split('T')[0];
 
-    const jadwalHariIni = jadwal.filter(j => j.guru_id === 'guru_001');
+    const jadwalHariIni = jadwal.filter(j => j.guru_id === user?.id);
     const absHari = abs.filter(a => a.tanggal === today);
     const hadirHari = absHari.filter(a => a.status === 'Hadir').length;
     const pctHadir = absHari.length > 0 ? Math.round((hadirHari / absHari.length) * 100) : 0;
@@ -407,7 +407,10 @@ const Pages = {
     const penilaian = JSON.parse(localStorage.getItem('mops_penilaian') || '[]');
     const today = new Date().toISOString().split('T')[0];
 
-    const myChildren = murid.filter(m => m.madrasah_id === 'mad_001').slice(0, 3);
+    const ortuMurid = JSON.parse(localStorage.getItem('mops_ortu_murid') || '[]');
+    const rels = ortuMurid.filter(r => r.ortu_id === user?.id || r.user_id === user?.id);
+    const childIds = rels.map(r => r.murid_id);
+    const myChildren = murid.filter(m => childIds.includes(m.id)).slice(0, 3);
     const absHari = abs.filter(a => a.tanggal === today);
     const hadirHari = absHari.filter(a => a.status === 'Hadir').length;
 

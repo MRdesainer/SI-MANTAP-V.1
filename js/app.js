@@ -208,7 +208,7 @@ const App = {
       mapel: ['Mata Pelajaran', 'Manajemen mata pelajaran'],
       jadwal: ['Jadwal Pelajaran', 'Penyusunan dan manajemen jadwal'],
       absensi: ['Absensi Siswa', 'Pencatatan kehadiran siswa harian'],
-      absensi_guru: ['Absensi Guru', 'Pencatatan kehadiran guru dan staff'],
+      absensi_guru: ['Absensi Guru', 'Absensi dengan selfie dan lokasi GPS'],
       kalender: ['Kalender Pendidikan', 'Jadwal kegiatan dan libur madrasah'],
       penilaian: ['Penilaian & Rapor', 'Input dan manajemen nilai siswa'],
       kurikulum: ['Kurikulum KMA 183', 'Manajemen perangkat pembelajaran'],
@@ -224,7 +224,6 @@ const App = {
       import_emis: ['Import EMIS 4.0', 'Import data dari sistem EMIS Kemenag'],
       bell_admin: ['Bel Otomatis', 'Manajemen jadwal dan pengaturan bel otomatis'],
       pengumuman: ['Pengumuman & Running Text', 'Kelola pengumuman sekolah dan teks berjalan untuk layar signage'],
-      absensi_guru: ['Absensi Guru', 'Absensi dengan selfie dan lokasi GPS'],
       manajemen_user: ['Manajemen User', 'Kelola akun guru, orang tua, dan password'],
     };
 

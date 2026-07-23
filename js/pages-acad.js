@@ -115,16 +115,24 @@ Pages._setAbs = function(mid, status, btn) {
   btn.classList.add('active');
 };
 
-Pages._saveAbsensi = function() {
+Pages._saveAbsensi = async function() {
   const today = document.getElementById('absensiTanggal')?.value || new Date().toISOString().split('T')[0];
   const kelasId = document.getElementById('absensiKelas')?.value;
   const existing = JSON.parse(localStorage.getItem('mops_absensi') || '[]');
   for (const [mid, val] of Object.entries(Pages._absData)) {
     if (!val.status) continue;
+    const keteranganInput = document.querySelector(`input[data-murid="${mid}"]`);
+    const keterangan = keteranganInput ? keteranganInput.value.trim() : (val.keterangan || '');
     const idx = existing.findIndex(a => a.murid_id === mid && a.tanggal === today);
-    const rec = { murid_id: mid, kelas_id: kelasId, tanggal: today, status: val.status, guru_id: Auth.currentUser?.id, madrasah_id: Auth.currentUser?.madrasah_id || 'mad_001' };
-    if (idx >= 0) existing[idx] = { ...existing[idx], ...rec };
-    else existing.push({ id: Utils.generateId(), ...rec, created_at: new Date().toISOString() });
+    const rec = { murid_id: mid, kelas_id: kelasId, tanggal: today, status: val.status, keterangan, guru_id: Auth.currentUser?.id, madrasah_id: Auth.currentUser?.madrasah_id || 'mad_001' };
+    if (idx >= 0) {
+      existing[idx] = { ...existing[idx], ...rec };
+      await DB.update('absensi', existing[idx].id, rec).catch(() => {});
+    } else {
+      const newRec = { id: Utils.generateId(), ...rec, created_at: new Date().toISOString() };
+      existing.push(newRec);
+      await DB.insert('absensi', newRec).catch(() => {});
+    }
   }
   localStorage.setItem('mops_absensi', JSON.stringify(existing));
   Pages._absData = {};
@@ -410,6 +418,7 @@ Pages._submitAbsGuru = async function(tipe) {
   }
 
   localStorage.setItem('mops_absensi_guru', JSON.stringify(absGuru));
+  DB.insert('absensi_guru', existing).catch(() => {});
   Realtime.broadcast('data_changed', 'absensi_guru');
 
   showToast('success', tipe === 'masuk' ? 'Absen masuk berhasil! ✓' : 'Absen pulang berhasil! ✓');
@@ -557,7 +566,7 @@ Pages.renderPenilaian = function() {
     </table></div></div>`;
 };
 
-Pages._savePenilaian = function() {
+Pages._savePenilaian = async function() {
   const mapelId = document.getElementById('penMapel')?.value;
   const kelasId = document.getElementById('penKelas')?.value;
   const jenis = document.getElementById('penJenis')?.value;
@@ -568,8 +577,14 @@ Pages._savePenilaian = function() {
     if (!nilai) return;
     const idx = existing.findIndex(p => p.murid_id === muridId && p.mata_pelajaran_id === mapelId && p.jenis_nilai === jenis);
     const rec = { murid_id: muridId, mata_pelajaran_id: mapelId, kelas_id: kelasId, jenis_nilai: jenis, nilai, tahun_pelajaran: '2025/2026', semester: 'Ganjil' };
-    if (idx >= 0) existing[idx] = { ...existing[idx], ...rec };
-    else existing.push({ id: Utils.generateId(), ...rec, created_at: new Date().toISOString() });
+    if (idx >= 0) {
+      existing[idx] = { ...existing[idx], ...rec };
+      DB.update('penilaian', existing[idx].id, rec).catch(() => {});
+    } else {
+      const newRec = { id: Utils.generateId(), ...rec, created_at: new Date().toISOString() };
+      existing.push(newRec);
+      DB.insert('penilaian', newRec).catch(() => {});
+    }
   });
   localStorage.setItem('mops_penilaian', JSON.stringify(existing));
   Realtime.broadcast('data_changed', 'penilaian');
