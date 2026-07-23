@@ -30,9 +30,12 @@ function getMadrasahId() {
 const DB = {
   _clean(record) {
     const out = {};
+    const nullSafe = /(_id|_date|_at|_lahir|_amount|_total|_count|_jumlah)$/i;
     for (const [k, v] of Object.entries(record)) {
-      if (v === '' || v === undefined) out[k] = null;
-      else out[k] = v;
+      if (v === undefined) continue;
+      if (v === '' && nullSafe.test(k)) out[k] = null;
+      else if (v === '' && (k === 'created_at' || k === 'updated_at')) out[k] = null;
+      else if (v !== '') out[k] = v;
     }
     return out;
   },
@@ -192,7 +195,12 @@ const DB = {
   async insertBatch(table, records) {
     const db = getDB();
     if (db) {
-      const cleaned = records.map(r => this._clean(r));
+      const cleaned = records.map(r => this._clean(r)).filter(r => {
+        if (table === 'guru' && !r.nama_lengkap) { console.warn('[DB] skip guru tanpa nama:', r); return false; }
+        if (table === 'murid' && !r.nama_lengkap) { console.warn('[DB] skip murid tanpa nama:', r); return false; }
+        return true;
+      });
+      if (cleaned.length === 0) throw new Error('Tidak ada data valid untuk diimport');
       const { data, error } = await db.from(table).insert(cleaned).select();
       if (error) {
         console.error(`[DB] insertBatch ${table} error:`, error);

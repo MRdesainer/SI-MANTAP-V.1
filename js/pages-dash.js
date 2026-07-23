@@ -530,7 +530,7 @@ const Pages = {
       const text = await file.text();
       const data = Utils.parseCSV(text);
       if (!data.length) return showToast('error', 'File kosong');
-      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nip: r.nip||'', nuptk: r.nuptk||'', mata_pelajaran: r.mata_pelajaran||r.mapel||'', status_guru: 'Aktif', status_pegawai: r.status_pegawai||'', madrasah_id: getMadrasahId() }));
+      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||r.Nama||r.Name||r['NAMA LENGKAP']||r['NAMA']||'', nip: r.nip||r.NIP||'', nuptk: r.nuptk||r.NUPTK||'', mata_pelajaran: r.mata_pelajaran||r.mapel||r.Mapel||r['MATA PELAJARAN']||'', status_guru: 'Aktif', status_pegawai: r.status_pegawai||r.Status||'', madrasah_id: getMadrasahId() })).filter(r => r.nama_lengkap);
       await DB.insertBatch('guru', mapped);
       showToast('success', `${mapped.length} guru diimport`); this.renderGuru();
     });
@@ -626,7 +626,7 @@ const Pages = {
       const text = await file.text();
       const data = Utils.parseCSV(text);
       if (!data.length) return showToast('error', 'File kosong');
-      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nisn: r.nisn||'', nis: r.nis||'', kelas_id: r.kelas_id||'', jenis_kelamin: r.jenis_kelamin||r.jk||'', tanggal_lahir: r.tanggal_lahir||'', tahun_masuk: r.tahun_masuk||'2025/2026', nama_ayah: r.nama_ayah||'', nama_ibu: r.nama_ibu||'', status_aktif: true, madrasah_id: getMadrasahId() }));
+      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||r.Nama||r.Name||r['NAMA LENGKAP']||r['NAMA']||'', nisn: r.nisn||r.NISN||'', nis: r.nis||r.NIS||'', kelas_id: r.kelas_id||'', jenis_kelamin: r.jenis_kelamin||r.jk||r.JK||r['JENIS KELAMIN']||'', tanggal_lahir: r.tanggal_lahir||r.tgl_lahir||'', tahun_masuk: r.tahun_masuk||'2025/2026', nama_ayah: r.nama_ayah||r.Ayah||'', nama_ibu: r.nama_ibu||r.Ibu||'', status_aktif: true, madrasah_id: getMadrasahId() })).filter(r => r.nama_lengkap);
       await DB.insertBatch('murid', mapped);
       showToast('success', `${mapped.length} siswa diimport`); this.renderMurid();
     });
