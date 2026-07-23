@@ -58,7 +58,7 @@ Pages._saveJadwal = async function(e, id) {
   if (ts) { data.jam_mulai = ts.mulai; data.jam_selesai = ts.selesai; }
   data.tahun_pelajaran = '2025/2026';
   if (id) { await DB.update('jadwal', id, data); showToast('success', 'Jadwal diperbarui'); }
-  else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('jadwal', data); showToast('success', 'Jadwal ditambahkan'); }
+  else { data.madrasah_id = getMadrasahId(); await DB.insert('jadwal', data); showToast('success', 'Jadwal ditambahkan'); }
   Realtime.broadcast('data_changed', 'jadwal');
   closeModal(); Pages.renderJadwal();
 };
@@ -124,7 +124,7 @@ Pages._saveAbsensi = async function() {
     const keteranganInput = document.querySelector(`input[data-murid="${mid}"]`);
     const keterangan = keteranganInput ? keteranganInput.value.trim() : (val.keterangan || '');
     const idx = existing.findIndex(a => a.murid_id === mid && a.tanggal === today);
-    const rec = { murid_id: mid, kelas_id: kelasId, tanggal: today, status: val.status, keterangan, guru_id: Auth.currentUser?.id, madrasah_id: Auth.currentUser?.madrasah_id || 'mad_001' };
+    const rec = { murid_id: mid, kelas_id: kelasId, tanggal: today, status: val.status, keterangan, guru_id: Auth.currentUser?.id, madrasah_id: getMadrasahId() };
     if (idx >= 0) {
       existing[idx] = { ...existing[idx], ...rec };
       await DB.update('absensi', existing[idx].id, rec).catch(() => {});
@@ -389,7 +389,7 @@ Pages._submitAbsGuru = async function(tipe) {
       guru_table_id: guruRec ? guruRec.id : null,
       nama_guru: user.nama_lengkap,
       tanggal: today,
-      madrasah_id: user.madrasah_id || 'mad_001',
+      madrasah_id: getMadrasahId(),
     };
     absGuru.push(existing);
   }
@@ -508,7 +508,7 @@ Pages._formKalender = function() {
 Pages._saveKalender = async function(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target).entries());
-  data.tahun_pelajaran = '2025/2026'; data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001';
+  data.tahun_pelajaran = '2025/2026'; data.madrasah_id = getMadrasahId();
   await DB.insert('kalender', data);
   Realtime.broadcast('data_changed', 'kalender');
   closeModal(); showToast('success', 'Event ditambahkan'); Pages.renderKalender();
@@ -623,7 +623,7 @@ Pages._formKurikulum = function() {
 Pages._saveKurikulum = async function(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target).entries());
-  data.tahun_pelajaran = '2025/2026'; data.semester = 'Ganjil'; data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001';
+  data.tahun_pelajaran = '2025/2026'; data.semester = 'Ganjil'; data.madrasah_id = getMadrasahId();
   await DB.insert('perangkat_pembelajaran', data);
   Realtime.broadcast('data_changed', 'perangkat_pembelajaran');
   closeModal(); showToast('success', 'Perangkat ditambahkan'); Pages.renderKurikulum();

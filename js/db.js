@@ -13,6 +13,20 @@ function _isOnline() {
   } catch(e) { return false; }
 }
 
+function _isValidUUID(v) {
+  return v && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+}
+
+function getMadrasahId() {
+  const u = (typeof Auth !== 'undefined' && Auth.currentUser && Auth.currentUser.madrasah_id) ? Auth.currentUser.madrasah_id : null;
+  if (_isValidUUID(u)) return u;
+  try {
+    const list = JSON.parse(localStorage.getItem('mops_madrasah') || '[]');
+    if (list.length > 0 && _isValidUUID(list[0].id)) return list[0].id;
+  } catch(e) {}
+  return null;
+}
+
 const DB = {
   async getAll(table, filters = {}, orderBy = 'created_at', ascending = false) {
     const db = getDB();

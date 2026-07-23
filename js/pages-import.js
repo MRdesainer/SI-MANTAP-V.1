@@ -417,7 +417,7 @@ const EmisImport = {
     const tab = this.currentTab;
     const storageKey = tab === 'guru' ? 'mops_guru' : tab === 'siswa' ? 'mops_murid' : 'mops_kelas';
     const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const madrasahId = Auth.currentUser?.madrasah_id || 'mad_001';
+    const madrasahId = getMadrasahId();
 
     let imported = 0, updated = 0, added = 0;
 

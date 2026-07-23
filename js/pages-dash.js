@@ -499,8 +499,17 @@ const Pages = {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
     try {
-      if (id) { await DB.update('guru', id, data); showToast('success', 'Guru diperbarui'); }
-      else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('guru', data); showToast('success', 'Guru ditambahkan'); }
+      if (id) {
+        await DB.update('guru', id, data);
+        showToast('success', 'Guru diperbarui');
+      } else {
+        const mid = Auth.currentUser?.madrasah_id;
+        if (mid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mid)) {
+          data.madrasah_id = mid;
+        }
+        await DB.insert('guru', data);
+        showToast('success', 'Guru ditambahkan');
+      }
       Realtime.broadcast('data_changed', 'guru');
       closeModal(); this.renderGuru();
     } catch(err) {
@@ -521,7 +530,7 @@ const Pages = {
       const text = await file.text();
       const data = Utils.parseCSV(text);
       if (!data.length) return showToast('error', 'File kosong');
-      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nip: r.nip||'', nuptk: r.nuptk||'', mata_pelajaran: r.mata_pelajaran||r.mapel||'', status_guru: 'Aktif', status_pegawai: r.status_pegawai||'', madrasah_id: Auth.currentUser?.madrasah_id||'mad_001' }));
+      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nip: r.nip||'', nuptk: r.nuptk||'', mata_pelajaran: r.mata_pelajaran||r.mapel||'', status_guru: 'Aktif', status_pegawai: r.status_pegawai||'', madrasah_id: getMadrasahId() }));
       await DB.insertBatch('guru', mapped);
       showToast('success', `${mapped.length} guru diimport`); this.renderGuru();
     });
@@ -586,8 +595,17 @@ const Pages = {
     const data = Object.fromEntries(new FormData(e.target).entries());
     data.status_aktif = true;
     try {
-      if (id) { await DB.update('murid', id, data); showToast('success', 'Siswa diperbarui'); }
-      else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('murid', data); showToast('success', 'Siswa ditambahkan'); }
+      if (id) {
+        await DB.update('murid', id, data);
+        showToast('success', 'Siswa diperbarui');
+      } else {
+        const mid = Auth.currentUser?.madrasah_id;
+        if (mid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mid)) {
+          data.madrasah_id = mid;
+        }
+        await DB.insert('murid', data);
+        showToast('success', 'Siswa ditambahkan');
+      }
       Realtime.broadcast('data_changed', 'murid');
       closeModal(); this.renderMurid();
     } catch(err) {
@@ -608,7 +626,7 @@ const Pages = {
       const text = await file.text();
       const data = Utils.parseCSV(text);
       if (!data.length) return showToast('error', 'File kosong');
-      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nisn: r.nisn||'', nis: r.nis||'', kelas_id: r.kelas_id||'', jenis_kelamin: r.jenis_kelamin||r.jk||'', tanggal_lahir: r.tanggal_lahir||'', tahun_masuk: r.tahun_masuk||'2025/2026', nama_ayah: r.nama_ayah||'', nama_ibu: r.nama_ibu||'', status_aktif: true, madrasah_id: Auth.currentUser?.madrasah_id||'mad_001' }));
+      const mapped = data.map(r => ({ nama_lengkap: r.nama_lengkap||r.nama||'', nisn: r.nisn||'', nis: r.nis||'', kelas_id: r.kelas_id||'', jenis_kelamin: r.jenis_kelamin||r.jk||'', tanggal_lahir: r.tanggal_lahir||'', tahun_masuk: r.tahun_masuk||'2025/2026', nama_ayah: r.nama_ayah||'', nama_ibu: r.nama_ibu||'', status_aktif: true, madrasah_id: getMadrasahId() }));
       await DB.insertBatch('murid', mapped);
       showToast('success', `${mapped.length} siswa diimport`); this.renderMurid();
     });
@@ -664,7 +682,7 @@ const Pages = {
     const data = Object.fromEntries(new FormData(e.target).entries());
     data.tingkat = parseInt(data.tingkat); data.kapasitas = parseInt(data.kapasitas) || 30;
     if (id) { await DB.update('kelas', id, data); showToast('success', 'Kelas diperbarui'); }
-    else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; data.jumlah_murid = 0; await DB.insert('kelas', data); showToast('success', 'Kelas ditambahkan'); }
+    else { data.madrasah_id = getMadrasahId(); data.jumlah_murid = 0; await DB.insert('kelas', data); showToast('success', 'Kelas ditambahkan'); }
     Realtime.broadcast('data_changed', 'kelas');
     closeModal(); this.renderKelas();
   },
@@ -736,7 +754,7 @@ const Pages = {
     const data = Object.fromEntries(new FormData(e.target).entries());
     data.jam_pelajaran = parseInt(data.jam_pelajaran) || 1;
     if (id) { await DB.update('mata_pelajaran', id, data); showToast('success', 'Mapel diperbarui'); }
-    else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('mata_pelajaran', data); showToast('success', 'Mapel ditambahkan'); }
+    else { data.madrasah_id = getMadrasahId(); await DB.insert('mata_pelajaran', data); showToast('success', 'Mapel ditambahkan'); }
     Realtime.broadcast('data_changed', 'mapel');
     closeModal(); this.renderMapel();
   },

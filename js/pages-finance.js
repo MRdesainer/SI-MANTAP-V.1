@@ -81,7 +81,7 @@ Pages._saveTrx = async function(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target).entries());
   data.nominal = parseFloat(data.nominal); data.tahun_pelajaran = '2025/2026';
-  data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001';
+  data.madrasah_id = getMadrasahId();
   await DB.insert('keuangan_transaksi', data);
   closeModal(); showToast('success', 'Transaksi ditambahkan'); Realtime.broadcast('data_changed', 'keuangan_transaksi'); Pages.renderKeuangan();
 };
@@ -153,7 +153,7 @@ Pages._saveSarana = async function(e, id) {
   const data = Object.fromEntries(new FormData(e.target).entries());
   data.jumlah = parseInt(data.jumlah)||1; data.nilai_perolehan = parseFloat(data.nilai_perolehan)||0;
   if (id) { await DB.update('sarana', id, data); showToast('success', 'Barang diperbarui'); }
-  else { data.madrasah_id = Auth.currentUser?.madrasah_id || 'mad_001'; await DB.insert('sarana', data); showToast('success', 'Barang ditambahkan'); }
+  else { data.madrasah_id = getMadrasahId(); await DB.insert('sarana', data); showToast('success', 'Barang ditambahkan'); }
   Realtime.broadcast('data_changed', 'sarana');
   closeModal(); Pages.renderSarana();
 };

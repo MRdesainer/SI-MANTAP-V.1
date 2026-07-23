@@ -637,7 +637,7 @@
         tahun_penerimaan: (function(){ try { return JSON.parse(localStorage.getItem('mops_ppdb_settings')||'{}').tahunPelajaran || '2025/2026'; } catch(e) { return '2025/2026'; } })(),
         tanggal_daftar: new Date().toISOString(),
         status: 'pending',
-        madrasah_id: 'mad_001'
+        madrasah_id: (function(){ try { return getMadrasahId(); } catch(e) { return null; } })()
       };
 
       // Save — Supabase online atau localStorage
