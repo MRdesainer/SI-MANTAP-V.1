@@ -402,26 +402,18 @@ Pages._previewLogo = function(key, input) {
   if (file.size > 2 * 1024 * 1024) { showToast('error', 'Ukuran gambar maksimal 2MB'); return; }
   const reader = new FileReader();
   reader.onload = function(e) {
-    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
-    settings[key] = e.target.result;
-    localStorage.setItem('mops_settings', JSON.stringify(settings));
-    Pages._syncSettingsToSupabase(settings);
-    Realtime.broadcast('settings_changed', settings);
     const preview = document.getElementById('preview' + key.charAt(0).toUpperCase() + key.slice(1));
     if (preview) preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain">`;
-    Pages._refreshLogoDisplay(key);
   };
   reader.readAsDataURL(file);
 };
 
 Pages._removeLogo = function(key) {
-  const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
-  delete settings[key];
-  localStorage.setItem('mops_settings', JSON.stringify(settings));
-  Pages._syncSettingsToSupabase(settings);
-  Realtime.broadcast('settings_changed', settings);
-  Pages.renderPengaturan();
-  Pages._refreshLogoDisplay(key);
+  const previewKey = 'preview' + key.charAt(0).toUpperCase() + key.slice(1);
+  const preview = document.getElementById(previewKey);
+  if (preview) {
+    preview.innerHTML = `<div class="text-center"><svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><div class="text-xs text-gray-400 mt-1">Klik untuk upload</div></div>`;
+  }
 };
 
 Pages._refreshLogoDisplay = function(key) {
@@ -474,6 +466,26 @@ Pages._saveSettings = async function(e) {
   const data = Object.fromEntries(new FormData(e.target).entries());
   const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
   Object.assign(settings, data);
+
+  const appLogoPreview = document.getElementById('previewAppLogo');
+  if (appLogoPreview) {
+    const img = appLogoPreview.querySelector('img');
+    if (img && img.src.startsWith('data:')) {
+      settings.appLogo = img.src;
+    } else if (!img) {
+      delete settings.appLogo;
+    }
+  }
+  const madrasahLogoPreview = document.getElementById('previewMadrasahLogo');
+  if (madrasahLogoPreview) {
+    const img = madrasahLogoPreview.querySelector('img');
+    if (img && img.src.startsWith('data:')) {
+      settings.madrasahLogo = img.src;
+    } else if (!img) {
+      delete settings.madrasahLogo;
+    }
+  }
+
   localStorage.setItem('mops_settings', JSON.stringify(settings));
 
   try {
