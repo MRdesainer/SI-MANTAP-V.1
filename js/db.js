@@ -28,6 +28,15 @@ function getMadrasahId() {
 }
 
 const DB = {
+  _clean(record) {
+    const out = {};
+    for (const [k, v] of Object.entries(record)) {
+      if (v === '' || v === undefined) out[k] = null;
+      else out[k] = v;
+    }
+    return out;
+  },
+
   async getAll(table, filters = {}, orderBy = 'created_at', ascending = false) {
     const db = getDB();
     if (db) {
@@ -82,8 +91,12 @@ const DB = {
   async insert(table, record) {
     const db = getDB();
     if (db) {
-      const { data, error } = await db.from(table).insert(record).select().single();
-      if (error) throw error;
+      const cleaned = this._clean(record);
+      const { data, error } = await db.from(table).insert(cleaned).select().single();
+      if (error) {
+        console.error(`[DB] insert ${table} error:`, error);
+        throw new Error(error.message + (error.hint ? ' | ' + error.hint : ''));
+      }
       const localData = JSON.parse(localStorage.getItem(`mops_${table}`) || '[]');
       localData.push(data);
       localStorage.setItem(`mops_${table}`, JSON.stringify(localData));
@@ -104,8 +117,12 @@ const DB = {
   async update(table, id, updates) {
     const db = getDB();
     if (db) {
-      const { data, error } = await db.from(table).update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).select().single();
-      if (error) throw error;
+      const cleaned = this._clean({ ...updates, updated_at: new Date().toISOString() });
+      const { data, error } = await db.from(table).update(cleaned).eq('id', id).select().single();
+      if (error) {
+        console.error(`[DB] update ${table} error:`, error);
+        throw new Error(error.message + (error.hint ? ' | ' + error.hint : ''));
+      }
       const localData = JSON.parse(localStorage.getItem(`mops_${table}`) || '[]');
       const idx = localData.findIndex(d => d.id === id);
       if (idx !== -1) { localData[idx] = { ...localData[idx], ...data }; }
@@ -175,8 +192,12 @@ const DB = {
   async insertBatch(table, records) {
     const db = getDB();
     if (db) {
-      const { data, error } = await db.from(table).insert(records).select();
-      if (error) throw error;
+      const cleaned = records.map(r => this._clean(r));
+      const { data, error } = await db.from(table).insert(cleaned).select();
+      if (error) {
+        console.error(`[DB] insertBatch ${table} error:`, error);
+        throw new Error(error.message + (error.hint ? ' | ' + error.hint : ''));
+      }
       const localData = JSON.parse(localStorage.getItem(`mops_${table}`) || '[]');
       localData.push(...(data || []));
       localStorage.setItem(`mops_${table}`, JSON.stringify(localData));
