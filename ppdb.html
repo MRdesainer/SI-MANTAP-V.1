@@ -269,7 +269,7 @@
       <div class="ppdb-info-card">
         <div class="ppdb-info-icon">📋</div>
         <h3>Persyaratan</h3>
-        <ul>
+        <ul id="ppdbPubPersyaratan">
           <li>Akta Kelahiran</li>
           <li>Kartu Keluarga</li>
           <li>Ijazah / Surat Keterangan</li>
@@ -279,7 +279,7 @@
       <div class="ppdb-info-card">
         <div class="ppdb-info-icon">📅</div>
         <h3>Jadwal</h3>
-        <ul>
+        <ul id="ppdbPubJadwal">
           <li>Pendaftaran: Juli — Agustus</li>
           <li>Seleksi: Agustus</li>
           <li>Pengumuman: September</li>
@@ -289,7 +289,7 @@
       <div class="ppdb-info-card">
         <div class="ppdb-info-icon">📞</div>
         <h3>Hubungi Kami</h3>
-        <ul>
+        <ul id="ppdbPubKontak">
           <li>Telp: (0351) 123456</li>
           <li>WA: 081234567890</li>
           <li>Email: ppdb@miu.sch.id</li>
@@ -322,6 +322,17 @@
         if (e.key === 'mops_running_text' && rtEl) {
           rtEl.textContent = e.newValue || 'Selamat Datang di PPDB Online MI Bustanul Ulum Curahkalong 01';
         }
+        if (e.key === 'mops_ppdb_settings') {
+          try {
+            const s = JSON.parse(e.newValue || '{}');
+            if (s.persyaratan && s.persyaratan.length) document.getElementById('ppdbPubPersyaratan').innerHTML = s.persyaratan.map(i => '<li>' + i + '</li>').join('');
+            if (s.jadwal && s.jadwal.length) document.getElementById('ppdbPubJadwal').innerHTML = s.jadwal.map(i => '<li>' + i + '</li>').join('');
+            if (s.telp || s.wa || s.email || s.jam) {
+              document.getElementById('ppdbPubKontak').innerHTML =
+                '<li>Telp: ' + (s.telp || '') + '</li><li>WA: ' + (s.wa || '') + '</li><li>Email: ' + (s.email || '') + '</li><li>Jam: ' + (s.jam || '') + '</li>';
+            }
+          } catch(e) {}
+        }
       });
 
       // Load PPDB settings
@@ -339,6 +350,20 @@
           }
           const btnNext = document.getElementById('btnNext');
           if (btnNext) { btnNext.disabled = true; btnNext.style.opacity = '0.5'; }
+        }
+        // Update info cards from settings
+        if (ppdbSet.persyaratan && ppdbSet.persyaratan.length) {
+          document.getElementById('ppdbPubPersyaratan').innerHTML = ppdbSet.persyaratan.map(i => '<li>' + i + '</li>').join('');
+        }
+        if (ppdbSet.jadwal && ppdbSet.jadwal.length) {
+          document.getElementById('ppdbPubJadwal').innerHTML = ppdbSet.jadwal.map(i => '<li>' + i + '</li>').join('');
+        }
+        if (ppdbSet.telp || ppdbSet.wa || ppdbSet.email || ppdbSet.jam) {
+          document.getElementById('ppdbPubKontak').innerHTML =
+            '<li>Telp: ' + (ppdbSet.telp || '(0351) 123456') + '</li>' +
+            '<li>WA: ' + (ppdbSet.wa || '081234567890') + '</li>' +
+            '<li>Email: ' + (ppdbSet.email || 'ppdb@miu.sch.id') + '</li>' +
+            '<li>Jam: ' + (ppdbSet.jam || '08.00 — 15.00 WIB') + '</li>';
         }
       } catch(e) {}
     })();

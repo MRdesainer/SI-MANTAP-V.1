@@ -76,38 +76,24 @@ const PPDBWizard = {
           <div class="ppdb-info-card">
             <div class="ppdb-info-icon">📋</div>
             <h3 class="ppdb-info-title">Persyaratan</h3>
-            <ul class="ppdb-info-list">
-              <li>Akta Kelahiran</li>
-              <li>Kartu Keluarga</li>
-              <li>Ijazah/Surat Keterangan</li>
-              <li>Pas Photo 3x4</li>
-            </ul>
+            <ul class="ppdb-info-list" id="ppdbInfoPersyaratan"></ul>
           </div>
           <div class="ppdb-info-card">
             <div class="ppdb-info-icon">📅</div>
             <h3 class="ppdb-info-title">Jadwal</h3>
-            <ul class="ppdb-info-list">
-              <li>Pendaftaran: Juli - Agustus</li>
-              <li>Seleksi: Agustus</li>
-              <li>Pengumuman: September</li>
-              <li>MPLS: September</li>
-            </ul>
+            <ul class="ppdb-info-list" id="ppdbInfoJadwal"></ul>
           </div>
           <div class="ppdb-info-card">
             <div class="ppdb-info-icon">📞</div>
             <h3 class="ppdb-info-title">Hubungi Kami</h3>
-            <ul class="ppdb-info-list">
-              <li>Telp: (0351) 123456</li>
-              <li>WA: 081234567890</li>
-              <li>Email: ppdb@miiu.sch.id</li>
-              <li>Jam: 08.00 - 15.00</li>
-            </ul>
+            <ul class="ppdb-info-list" id="ppdbInfoKontak"></ul>
           </div>
         </div>
       </div>
     `;
 
     this.loadSavedData();
+    this._renderPPDBInfoCards();
   },
 
   renderStepIndicators() {
@@ -630,6 +616,38 @@ Pages.renderPPDB = function() {
             <input type="number" class="form-input" id="ppdbSetKuotaMAK" value="${ppdbSettings.kuotaMAK || 0}" min="0">
           </div>
         </div>
+
+        <div class="mt-4 pt-4 border-t">
+          <h4 class="font-semibold text-sm mb-3 text-gray-700">📋 Informasi PPDB (ditampilkan di halaman publik)</h4>
+          <div class="grid grid-cols-1 gap-4">
+            <div class="form-group">
+              <label class="form-label">Persyaratan (satu item per baris)</label>
+              <textarea class="form-input" id="ppdbSetPersyaratan" rows="4" placeholder="Akta Kelahiran&#10;Kartu Keluarga&#10;Ijazah / Surat Keterangan&#10;Pas Photo 3x4">${(ppdbSettings.persyaratan || ['Akta Kelahiran','Kartu Keluarga','Ijazah / Surat Keterangan','Pas Photo 3x4']).join('\n')}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jadwal (satu item per baris)</label>
+              <textarea class="form-input" id="ppdbSetJadwal" rows="4" placeholder="Pendaftaran: Juli — Agustus&#10;Seleksi: Agustus&#10;Pengumuman: September&#10;MPLS: September">${(ppdbSettings.jadwal || ['Pendaftaran: Juli — Agustus','Seleksi: Agustus','Pengumuman: September','MPLS: September']).join('\n')}</textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">Telepon</label>
+                <input type="text" class="form-input" id="ppdbSetTelp" value="${ppdbSettings.telp || '(0351) 123456'}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">WhatsApp</label>
+                <input type="text" class="form-input" id="ppdbSetWA" value="${ppdbSettings.wa || '081234567890'}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email PPDB</label>
+                <input type="email" class="form-input" id="ppdbSetEmail" value="${ppdbSettings.email || 'ppdb@miu.sch.id'}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Jam Operasional</label>
+                <input type="text" class="form-input" id="ppdbSetJam" value="${ppdbSettings.jam || '08.00 — 15.00 WIB'}">
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="flex justify-end mt-4 pt-4 border-t">
           <button class="btn btn-primary" onclick="Pages._savePPDBSettings()">Simpan Pengaturan</button>
         </div>
@@ -812,7 +830,31 @@ Pages._savePPDBSettings = function() {
     kuotaMTs: parseInt(document.getElementById('ppdbSetKuotaMTs').value) || 0,
     kuotaMA: parseInt(document.getElementById('ppdbSetKuotaMA').value) || 0,
     kuotaMAK: parseInt(document.getElementById('ppdbSetKuotaMAK').value) || 0,
+    persyaratan: (document.getElementById('ppdbSetPersyaratan').value || '').split('\n').map(s => s.trim()).filter(Boolean),
+    jadwal: (document.getElementById('ppdbSetJadwal').value || '').split('\n').map(s => s.trim()).filter(Boolean),
+    telp: document.getElementById('ppdbSetTelp').value || '',
+    wa: document.getElementById('ppdbSetWA').value || '',
+    email: document.getElementById('ppdbSetEmail').value || '',
+    jam: document.getElementById('ppdbSetJam').value || '',
   };
   localStorage.setItem('mops_ppdb_settings', JSON.stringify(settings));
+  Pages._renderPPDBInfoCards();
   showToast('success', 'Pengaturan PPDB disimpan');
+};
+
+Pages._renderPPDBInfoCards = function() {
+  const s = JSON.parse(localStorage.getItem('mops_ppdb_settings') || '{}');
+  const persyaratan = s.persyaratan || ['Akta Kelahiran','Kartu Keluarga','Ijazah / Surat Keterangan','Pas Photo 3x4'];
+  const jadwal = s.jadwal || ['Pendaftaran: Juli — Agustus','Seleksi: Agustus','Pengumuman: September','MPLS: September'];
+  const telp = s.telp || '(0351) 123456';
+  const wa = s.wa || '081234567890';
+  const email = s.email || 'ppdb@miu.sch.id';
+  const jam = s.jam || '08.00 — 15.00 WIB';
+
+  const persEl = document.getElementById('ppdbInfoPersyaratan');
+  const jadEl = document.getElementById('ppdbInfoJadwal');
+  const konEl = document.getElementById('ppdbInfoKontak');
+  if (persEl) persEl.innerHTML = persyaratan.map(i => '<li>' + i + '</li>').join('');
+  if (jadEl) jadEl.innerHTML = jadwal.map(i => '<li>' + i + '</li>').join('');
+  if (konEl) konEl.innerHTML = '<li>Telp: ' + telp + '</li><li>WA: ' + wa + '</li><li>Email: ' + email + '</li><li>Jam: ' + jam + '</li>';
 };
