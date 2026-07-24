@@ -68,9 +68,8 @@ DO $$ DECLARE r RECORD; BEGIN
   END LOOP;
 END $$;
 
--- 9. FORCE PostgREST reload schema (INI PENTING!)
--- Tanpa ini, API tidak lihat tabel baru setelah DROP+CREATE
-SELECT pgrst.reload();
+-- 9. Trigger PostgREST schema reload
+NOTIFY pgrst, 'reload schema';
 
 -- 10. VERIFIKASI
 SELECT id, email, nama_lengkap, role, is_active FROM profiles WHERE email = 'admin@si-mantap.go.id';
