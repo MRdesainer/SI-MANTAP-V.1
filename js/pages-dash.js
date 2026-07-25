@@ -1025,25 +1025,26 @@ const Pages = {
     document.querySelectorAll('.kartu-check').forEach(c => c.checked = cb.checked);
   },
 
-  _getKartuHtml(m, settings) {
+  _getKartuDepanHtml(m, settings) {
     const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]').find(k => k.id === m.kelas_id);
     const madrasahLogo = settings.madrasahLogo || '';
     const namaMadrasah = settings.madrasahName || 'Madrasah';
     const alamatMadrasah = settings.madrasahAlamat || '';
+    const npsn = settings.madrasahNpsn || '';
     const kepalaMadrasah = settings.madrasahKepala || '-';
     const fotoHtml = m.foto
-      ? `<img src="${m.foto}" style="width:70px;height:85px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
-      : `<div style="width:70px;height:85px;border:1px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:10px;text-align:center">Foto<br>Siswa</div>`;
+      ? `<img src="${m.foto}" style="width:65px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
+      : `<div style="width:65px;height:80px;border:1.5px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:9px;text-align:center">Foto</div>`;
     const logoHtml = madrasahLogo
-      ? `<img src="${madrasahLogo}" style="width:40px;height:40px;object-fit:contain">`
-      : `<div style="width:40px;height:40px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:14px">M</div>`;
+      ? `<img src="${madrasahLogo}" style="width:36px;height:36px;object-fit:contain">`
+      : `<div style="width:36px;height:36px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:14px">M</div>`;
 
-    return `<div class="kartu-pelajar">
+    return `<div class="kartu-pelajar kartu-depan">
       <div class="kartu-header">
         <div class="kartu-logo">${logoHtml}</div>
         <div class="kartu-identitas">
           <div class="kartu-nama-instansi">${namaMadrasah}</div>
-          <div class="kartu-alamat-instansi">${alamatMadrasah}</div>
+          <div class="kartu-alamat-instansi">${alamatMadrasah}${npsn ? ' — NPSN: '+npsn : ''}</div>
         </div>
       </div>
       <div class="kartu-body">
@@ -1067,48 +1068,123 @@ const Pages = {
     </div>`;
   },
 
+  _getKartuBelakangHtml(m, settings) {
+    const namaMadrasah = settings.madrasahName || 'Madrasah';
+    const tahunPelajaran = settings.tahunPelajaran || '2025/2026';
+    return `<div class="kartu-pelajar kartu-belakang">
+      <div class="kartu-back-header">
+        <div class="kartu-back-title">IKRAR SISWA</div>
+        <div class="kartu-back-subtitle">${namaMadrasah}</div>
+      </div>
+      <div class="kartu-back-body">
+        <div class="kartu-ikrar">
+          <p>Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang, kami siswa/santri <strong>${namaMadrasah}</strong> berjanji:</p>
+          <ol>
+            <li>Menuntut ilmu dengan sungguh-sungguh dan menjaga nama baik madrasah.</li>
+            <li>Menjunjung tinggi akhlak mulia, sopan santun, dan disiplin.</li>
+            <li>Mematuhi peraturan madrasah serta menghormati guru dan sesama.</li>
+            <li>Menjaga kebersihan, kerapian, dan keamanan lingkungan madrasah.</li>
+            <li>Mengamalkan ilmu yang diperoleh untuk kebaikan diri, agama, dan bangsa.</li>
+          </ol>
+        </div>
+        <div class="kartu-back-ttd-row">
+          <div class="kartu-back-ttd">
+            <div class="kartu-ttd-label">Mengetahui,<br>Kepala Madrasah</div>
+            <div class="kartu-ttd-garis"></div>
+            <div class="kartu-ttd-nama">${settings.madrasahKepala||'-'}</div>
+          </div>
+          <div class="kartu-back-ttd">
+            <div class="kartu-ttd-label">${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
+            <div class="kartu-ttd-label" style="font-weight:600;color:#1f2937">Siswa/i</div>
+            <div class="kartu-ttd-garis"></div>
+            <div class="kartu-ttd-nama">${m.nama_lengkap||'-'}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  },
+
   _previewKartu(muridId) {
     const m = JSON.parse(localStorage.getItem('mops_murid') || '[]').find(x => x.id === muridId);
     if (!m) return;
     const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
-    const html = this._getKartuHtml(m, settings);
-    openModal('Preview Kartu Pelajar — ' + m.nama_lengkap, `<div style="display:flex;justify-content:center;padding:20px 0">${html}</div>`, `<button class="btn btn-primary" onclick="Pages._printSingleKartu('${muridId}')">Cetak</button>`);
+    const depan = this._getKartuDepanHtml(m, settings);
+    const belakang = this._getKartuBelakangHtml(m, settings);
+    openModal('Preview Kartu — ' + m.nama_lengkap, `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0">
+        <div><strong style="font-size:12px;color:#666">HALAMAN DEPAN</strong></div>
+        <div>${depan}</div>
+        <div style="margin-top:8px"><strong style="font-size:12px;color:#666">HALAMAN BELAKANG</strong></div>
+        <div>${belakang}</div>
+      </div>`,
+      `<button class="btn btn-primary" onclick="Pages._printSingleKartu('${muridId}')">Cetak Bolak-Balik</button>`
+    );
   },
 
   _buildPrintHtml(murids, settings) {
-    const cards = murids.map(m => this._getKartuHtml(m, settings)).join('');
+    const pairs = murids.map(m => {
+      return `<div class="kartu-pair">
+        <div class="kartu-page">${this._getKartuDepanHtml(m, settings)}</div>
+        <div class="kartu-page">${this._getKartuBelakangHtml(m, settings)}</div>
+      </div>`;
+    }).join('');
+
     return `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
 <title>Kartu Pelajar</title>
 <link rel="stylesheet" href="css/styles.css">
 <style>
-  body { margin:0; padding:10px; font-family:'Segoe UI',Tahoma,sans-serif; }
-  .kartu-pelajar { width:86mm;height:54mm;border:1.5px solid #333;border-radius:6px;padding:4mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;page-break-after:always;page-break-inside:avoid;position:relative;overflow:hidden; }
-  .kartu-header { display:flex;align-items:center;gap:3mm;padding-bottom:2mm;border-bottom:1px solid #ddd; }
-  .kartu-logo { flex-shrink:0; }
-  .kartu-identitas { flex:1;min-width:0; }
-  .kartu-nama-instansi { font-size:8pt;font-weight:700;color:#065f46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .kartu-alamat-instansi { font-size:5.5pt;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .kartu-body { display:flex;gap:3mm;flex:1;padding:2mm 0; }
-  .kartu-foto { flex-shrink:0;display:flex;align-items:flex-start;padding-top:1mm; }
-  .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.8mm; }
-  .kartu-field { display:flex;align-items:baseline;gap:2mm; }
-  .kartu-label { font-size:5.5pt;color:#888;width:50px;flex-shrink:0; }
-  .kartu-value { font-size:7pt;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .kartu-footer { display:flex;justify-content:flex-end;padding-top:2mm;border-top:1px solid #eee; }
+  @page { size: A4; margin: 10mm; }
+  body { margin:0; padding:0; font-family:'Segoe UI',Tahoma,sans-serif; }
+  * { box-sizing: border-box; }
+
+  .kartu-pair { display:flex; flex-direction:column; align-items:center; page-break-after:always; page-break-inside:avoid; padding:4mm 0; }
+  .kartu-pair:last-child { page-break-after:auto; }
+
+  .kartu-pelajar { width:86mm;height:54mm;border:1.5px solid #333;border-radius:6px;padding:3.5mm;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden; }
+
+  /* DEPAN */
+  .kartu-depan .kartu-header { display:flex;align-items:center;gap:2.5mm;padding-bottom:2mm;border-bottom:1px solid #ddd; }
+  .kartu-depan .kartu-logo { flex-shrink:0; }
+  .kartu-depan .kartu-identitas { flex:1;min-width:0; }
+  .kartu-depan .kartu-nama-instansi { font-size:7.5pt;font-weight:700;color:#065f46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-alamat-instansi { font-size:5pt;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-body { display:flex;gap:2.5mm;flex:1;padding:1.5mm 0; }
+  .kartu-depan .kartu-foto { flex-shrink:0;display:flex;align-items:flex-start;padding-top:1mm; }
+  .kartu-depan .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.6mm; }
+  .kartu-depan .kartu-field { display:flex;align-items:baseline;gap:1.5mm; }
+  .kartu-depan .kartu-label { font-size:5pt;color:#888;width:42px;flex-shrink:0; }
+  .kartu-depan .kartu-value { font-size:6.5pt;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-footer { display:flex;justify-content:flex-end;padding-top:1.5mm;border-top:1px solid #eee; }
+
+  /* BELAKANG */
+  .kartu-belakang { background:#f8fdf9; }
+  .kartu-belakang .kartu-back-header { text-align:center;padding-bottom:1.5mm;border-bottom:1.5px solid #065f46;margin-bottom:1.5mm; }
+  .kartu-belakang .kartu-back-title { font-size:8pt;font-weight:800;color:#065f46;letter-spacing:1px; }
+  .kartu-belakang .kartu-back-subtitle { font-size:5pt;color:#666;margin-top:0.5mm; }
+  .kartu-belakang .kartu-back-body { flex:1;display:flex;flex-direction:column;justify-content:space-between; }
+  .kartu-belakang .kartu-ikrar { font-size:5pt;color:#333;line-height:1.5; }
+  .kartu-belakang .kartu-ikrar p { margin:0 0 1.5mm 0; }
+  .kartu-belakang .kartu-ikrar ol { margin:0;padding-left:4mm; }
+  .kartu-belakang .kartu-ikrar li { margin-bottom:0.8mm; }
+  .kartu-belakang .kartu-back-ttd-row { display:flex;justify-content:space-between;padding-top:2mm;border-top:1px solid #ddd; }
+  .kartu-belakang .kartu-back-ttd { text-align:center;width:38mm; }
+
   .kartu-ttd { text-align:center;width:40mm; }
-  .kartu-ttd-label { font-size:5.5pt;color:#888; }
-  .kartu-ttd-garis { border-bottom:1px solid #333;margin:3mm 8mm; }
-  .kartu-ttd-nama { font-size:6.5pt;font-weight:600;color:#1f2937; }
+  .kartu-ttd-label { font-size:5pt;color:#888; }
+  .kartu-ttd-garis { border-bottom:1px solid #333;margin:2.5mm 6mm; }
+  .kartu-ttd-nama { font-size:6pt;font-weight:600;color:#1f2937; }
+
   @media print {
-    body { margin:0;padding:5mm; }
+    body { margin:0;padding:0; }
     .no-print { display:none !important; }
     .kartu-pelajar { border:1.5px solid #000; }
+    .kartu-pair { margin:0; }
   }
 </style>
 </head><body>
-${cards}
+${pairs}
 </body></html>`;
   },
 
