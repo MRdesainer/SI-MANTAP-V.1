@@ -306,14 +306,7 @@ Pages.renderPengaturan = function() {
               <label class="form-label">Tagline / Keterangan</label>
               <input type="text" name="appTagline" class="form-input" value="${appTagline}">
             </div>
-            <div class="form-group">
-              <label class="form-label">Teks Logo (jika tidak pakai gambar)</label>
-              <input type="text" name="logoText" class="form-input" value="${logoText}" maxlength="3">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Warna Latar Logo</label>
-              <input type="color" name="logoColor" class="form-input h-10" value="${logoColor}">
-            </div>
+
           </div>
           <div class="space-y-4">
             <h4 class="font-bold text-sm text-gray-700 border-b pb-2">Profil Madrasah</h4>
