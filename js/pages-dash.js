@@ -1204,8 +1204,10 @@ const Pages = {
         <div class="kartu-ikrar">${ikrarHtml}</div>
         <div class="kartu-back-ttd-row" style="justify-content:flex-end">
           <div class="kartu-back-ttd" style="width:42mm">
-            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Mengetahui,</div><div class="kartu-ttd-garis"></div>`}
-            <div class="kartu-ttd-nama">${kepalaMadrasah}</div>
+            <div class="kartu-ttd-label">Mengetahui,</div>
+            <div class="kartu-ttd-label" style="margin-bottom:1mm">Kepala Madrasah</div>
+            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-garis"></div>`}
+            <div class="kartu-ttd-nama" style="font-size:7pt;font-weight:700;text-decoration:underline">${kepalaMadrasah}</div>
           </div>
         </div>
       </div>
