@@ -1202,16 +1202,10 @@ const Pages = {
       </div>
       <div class="kartu-back-body">
         <div class="kartu-ikrar">${ikrarHtml}</div>
-        <div class="kartu-back-ttd-row">
-          <div class="kartu-back-ttd">
-            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Mengetahui,<br>Kepala Madrasah</div><div class="kartu-ttd-garis"></div>`}
+        <div class="kartu-back-ttd-row" style="justify-content:flex-end">
+          <div class="kartu-back-ttd" style="width:42mm">
+            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Mengetahui,</div><div class="kartu-ttd-garis"></div>`}
             <div class="kartu-ttd-nama">${kepalaMadrasah}</div>
-          </div>
-          <div class="kartu-back-ttd">
-            <div class="kartu-ttd-label">${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
-            <div class="kartu-ttd-label" style="font-weight:600;color:#1f2937">Siswa/i</div>
-            <div class="kartu-ttd-garis"></div>
-            <div class="kartu-ttd-nama">${m.nama_lengkap||'-'}</div>
           </div>
         </div>
       </div>
