@@ -966,4 +966,184 @@ const Pages = {
     showToast('success', 'Profil berhasil diubah');
     closeModal();
   },
+
+  // ========== KARTU PELAJAR ==========
+  renderKartuPelajar() {
+    const page = document.getElementById('activePage');
+    const murid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]');
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+
+    page.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <div class="search-box"><input type="text" id="searchKartu" placeholder="Cari nama, NISN..." class="form-input w-64" oninput="Pages._filterKartuPelajar()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+          <select id="filterKelasKartu" class="form-select w-36" onchange="Pages._filterKartuPelajar()"><option value="">Semua Kelas</option>${kelas.map(k => `<option value="${k.id}">${k.nama_kelas}</option>`).join('')}</select>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline" onclick="Pages._printAllKartu()">Cetak Semua</button>
+          <button class="btn btn-primary" onclick="Pages._printSelectedKartu()">Cetak Terpilih</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-container">
+          <table>
+            <thead><tr><th><input type="checkbox" id="selectAllKartu" onchange="Pages._toggleAllKartu(this)"></th><th>No</th><th>Nama</th><th>NISN</th><th>Kelas</th><th>JK</th><th>Aksi</th></tr></thead>
+            <tbody id="kartuTableBody">${murid.map((m, i) => this._kartuRow(m, i + 1)).join('')}</tbody>
+          </table>
+        </div>
+        <div class="card-body border-t"><span class="text-sm text-gray-500">${murid.length} siswa</span></div>
+      </div>`;
+  },
+
+  _kartuRow(m, no) {
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]').find(k => k.id === m.kelas_id);
+    return `<tr>
+      <td><input type="checkbox" class="kartu-check" value="${m.id}"></td>
+      <td class="font-medium">${no}</td>
+      <td><div class="flex items-center gap-2"><div class="avatar avatar-sm">${Utils.getInitials(m.nama_lengkap)}</div><span class="font-medium text-sm">${m.nama_lengkap}</span></div></td>
+      <td class="text-sm">${m.nisn||'-'}</td>
+      <td><span class="badge badge-blue">${kelas?.nama_kelas||'-'}</span></td>
+      <td class="text-sm">${m.jenis_kelamin||'-'}</td>
+      <td><div class="flex gap-1">
+        <button class="btn btn-sm btn-outline" onclick="Pages._previewKartu('${m.id}')">Preview</button>
+        <button class="btn btn-sm btn-primary" onclick="Pages._printSingleKartu('${m.id}')">Cetak</button>
+      </div></td>
+    </tr>`;
+  },
+
+  _filterKartuPelajar() {
+    const s = document.getElementById('searchKartu')?.value?.toLowerCase() || '';
+    const k = document.getElementById('filterKelasKartu')?.value || '';
+    let m = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    if (s) m = m.filter(x => (x.nama_lengkap||'').toLowerCase().includes(s) || (x.nisn||'').includes(s));
+    if (k) m = m.filter(x => x.kelas_id === k);
+    document.getElementById('kartuTableBody').innerHTML = m.map((x, i) => this._kartuRow(x, i + 1)).join('');
+  },
+
+  _toggleAllKartu(cb) {
+    document.querySelectorAll('.kartu-check').forEach(c => c.checked = cb.checked);
+  },
+
+  _getKartuHtml(m, settings) {
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]').find(k => k.id === m.kelas_id);
+    const madrasahLogo = settings.madrasahLogo || '';
+    const namaMadrasah = settings.madrasahName || 'Madrasah';
+    const alamatMadrasah = settings.madrasahAlamat || '';
+    const kepalaMadrasah = settings.madrasahKepala || '-';
+    const fotoHtml = m.foto
+      ? `<img src="${m.foto}" style="width:70px;height:85px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
+      : `<div style="width:70px;height:85px;border:1px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:10px;text-align:center">Foto<br>Siswa</div>`;
+    const logoHtml = madrasahLogo
+      ? `<img src="${madrasahLogo}" style="width:40px;height:40px;object-fit:contain">`
+      : `<div style="width:40px;height:40px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:14px">M</div>`;
+
+    return `<div class="kartu-pelajar">
+      <div class="kartu-header">
+        <div class="kartu-logo">${logoHtml}</div>
+        <div class="kartu-identitas">
+          <div class="kartu-nama-instansi">${namaMadrasah}</div>
+          <div class="kartu-alamat-instansi">${alamatMadrasah}</div>
+        </div>
+      </div>
+      <div class="kartu-body">
+        <div class="kartu-foto">${fotoHtml}</div>
+        <div class="kartu-data">
+          <div class="kartu-field"><span class="kartu-label">NIS</span><span class="kartu-value">${m.nis||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">NISN</span><span class="kartu-value">${m.nisn||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Nama</span><span class="kartu-value">${m.nama_lengkap||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Kelas</span><span class="kartu-value">${kelas?.nama_kelas||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">J. Kelamin</span><span class="kartu-value">${m.jenis_kelamin||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Tgl Lahir</span><span class="kartu-value">${m.tanggal_lahir ? new Date(m.tanggal_lahir).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '-'}</span></div>
+        </div>
+      </div>
+      <div class="kartu-footer">
+        <div class="kartu-ttd">
+          <div class="kartu-ttd-label">Kepala Madrasah</div>
+          <div class="kartu-ttd-garis"></div>
+          <div class="kartu-ttd-nama">${kepalaMadrasah}</div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  _previewKartu(muridId) {
+    const m = JSON.parse(localStorage.getItem('mops_murid') || '[]').find(x => x.id === muridId);
+    if (!m) return;
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const html = this._getKartuHtml(m, settings);
+    openModal('Preview Kartu Pelajar — ' + m.nama_lengkap, `<div style="display:flex;justify-content:center;padding:20px 0">${html}</div>`, `<button class="btn btn-primary" onclick="Pages._printSingleKartu('${muridId}')">Cetak</button>`);
+  },
+
+  _buildPrintHtml(murids, settings) {
+    const cards = murids.map(m => this._getKartuHtml(m, settings)).join('');
+    return `<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Kartu Pelajar</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  body { margin:0; padding:10px; font-family:'Segoe UI',Tahoma,sans-serif; }
+  .kartu-pelajar { width:86mm;height:54mm;border:1.5px solid #333;border-radius:6px;padding:4mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;page-break-after:always;page-break-inside:avoid;position:relative;overflow:hidden; }
+  .kartu-header { display:flex;align-items:center;gap:3mm;padding-bottom:2mm;border-bottom:1px solid #ddd; }
+  .kartu-logo { flex-shrink:0; }
+  .kartu-identitas { flex:1;min-width:0; }
+  .kartu-nama-instansi { font-size:8pt;font-weight:700;color:#065f46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-alamat-instansi { font-size:5.5pt;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-body { display:flex;gap:3mm;flex:1;padding:2mm 0; }
+  .kartu-foto { flex-shrink:0;display:flex;align-items:flex-start;padding-top:1mm; }
+  .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.8mm; }
+  .kartu-field { display:flex;align-items:baseline;gap:2mm; }
+  .kartu-label { font-size:5.5pt;color:#888;width:50px;flex-shrink:0; }
+  .kartu-value { font-size:7pt;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-footer { display:flex;justify-content:flex-end;padding-top:2mm;border-top:1px solid #eee; }
+  .kartu-ttd { text-align:center;width:40mm; }
+  .kartu-ttd-label { font-size:5.5pt;color:#888; }
+  .kartu-ttd-garis { border-bottom:1px solid #333;margin:3mm 8mm; }
+  .kartu-ttd-nama { font-size:6.5pt;font-weight:600;color:#1f2937; }
+  @media print {
+    body { margin:0;padding:5mm; }
+    .no-print { display:none !important; }
+    .kartu-pelajar { border:1.5px solid #000; }
+  }
+</style>
+</head><body>
+${cards}
+</body></html>`;
+  },
+
+  _printSingleKartu(muridId) {
+    const m = JSON.parse(localStorage.getItem('mops_murid') || '[]').find(x => x.id === muridId);
+    if (!m) return;
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml([m], settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  },
+
+  _printAllKartu() {
+    const murid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    if (murid.length === 0) return showToast('error', 'Tidak ada siswa');
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml(murid, settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  },
+
+  _printSelectedKartu() {
+    const checked = [...document.querySelectorAll('.kartu-check:checked')].map(c => c.value);
+    if (checked.length === 0) return showToast('error', 'Pilih siswa yang ingin dicetak');
+    const allMurid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    const selected = allMurid.filter(m => checked.includes(m.id));
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml(selected, settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  },
 };
