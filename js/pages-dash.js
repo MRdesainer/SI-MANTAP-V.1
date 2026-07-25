@@ -1206,8 +1206,8 @@ const Pages = {
           <div style="text-align:center;width:42mm">
             <div style="font-size:4.5pt;color:#888">Mengetahui,</div>
             <div style="font-size:4.5pt;color:#888;margin-bottom:0.5mm">Kepala Madrasah</div>
-            ${ttdKepala ? `<div><img src="${ttdKepala}" style="height:8mm;object-fit:contain"></div>` : `<div style="border-bottom:1px solid #333;margin:1.5mm 6mm"></div>`}
-            <div style="font-size:6.5pt;font-weight:700;color:#1f2937;text-decoration:underline;margin-top:0.5mm">${kepalaMadrasah}</div>
+            ${ttdKepala ? `<div style="height:8mm;overflow:hidden;margin-bottom:1mm"><img src="${ttdKepala}" style="width:100%;height:100%;object-fit:contain"></div>` : `<div style="border-bottom:1px solid #333;margin:1.5mm 6mm"></div>`}
+            <div style="font-size:6.5pt;font-weight:700;color:#1f2937;text-decoration:underline">${kepalaMadrasah}</div>
           </div>
         </div>
       </div>
