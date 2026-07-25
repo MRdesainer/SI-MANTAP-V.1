@@ -781,6 +781,7 @@ const Pages = {
           <div class="search-box"><input type="text" id="searchUser" placeholder="Cari nama, email..." class="form-input w-64" oninput="Pages._filterUser()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
           <select id="filterRoleUser" class="form-select w-36" onchange="Pages._filterUser()"><option value="">Semua Role</option><option value="guru">Guru</option><option value="ortu">Orang Tua</option><option value="operator">Operator</option><option value="kepala_madrasah">Kepala Madrasah</option></select>
         </div>
+        <button class="btn btn-primary btn-sm" onclick="Pages._formEditProfilSaya()">Profil Saya</button>
       </div>
       <div class="card">
         <div class="table-container">
@@ -792,7 +793,7 @@ const Pages = {
         <div class="card-body border-t"><span class="text-sm text-gray-500">${users.length} user terdaftar</span></div>
       </div>
       <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-        <strong>Catatan:</strong> User baru didaftarkan melalui halaman Register. Admin dapat mengubah role dan status di sini.
+        <strong>Catatan:</strong> User baru didaftarkan melalui halaman Register. Admin dapat mengubah role, status, dan menghapus akun non-aktif di sini. Klik "Profil Saya" untuk mengubah username dan password admin sendiri.
       </div>`;
   },
 
@@ -811,6 +812,7 @@ const Pages = {
         <button class="btn btn-sm btn-outline" onclick="Pages._formEditUser('${u.id}','${(u.nama_lengkap||'').replace(/'/g,"\\'")}','${u.email}','${u.role}')">Edit</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._formChangeRole('${u.id}','${u.role}')">Role</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._toggleUserActive('${u.id}',${u.is_active})">${u.is_active ? 'Non-Aktifkan' : 'Aktifkan'}</button>
+        ${!u.is_active ? `<button class="btn btn-sm btn-danger" onclick="Pages._deleteUser('${u.id}','${(u.nama_lengkap||u.email).replace(/'/g,"\\'")}')">Hapus</button>` : ''}
       </div></td>
     </tr>`;
   },
@@ -881,5 +883,79 @@ const Pages = {
     showToast('success', 'Profil user berhasil diubah');
     closeModal();
     this.renderManajemenUser();
+  },
+
+  async _deleteUser(userId, nama) {
+    openModal('Hapus User', `
+      <div class="text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <p class="text-sm text-gray-600 mb-1">Yakin ingin menghapus user:</p>
+        <p class="font-semibold text-gray-900 mb-4">${nama}</p>
+        <p class="text-xs text-red-500">Tindakan ini tidak dapat dibatalkan.</p>
+      </div>
+      <div class="flex justify-center gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="button" class="btn btn-danger" onclick="Pages._confirmDeleteUser('${userId}')">Hapus</button>
+      </div>
+    `);
+  },
+
+  async _confirmDeleteUser(userId) {
+    try {
+      await DB.delete('profiles', userId);
+      let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+      users = users.filter(u => u.id !== userId);
+      localStorage.setItem('mops_users', JSON.stringify(users));
+      showToast('success', 'User berhasil dihapus');
+      closeModal();
+      this.renderManajemenUser();
+    } catch(e) {
+      showToast('error', 'Gagal menghapus user: ' + e.message);
+    }
+  },
+
+  _formEditProfilSaya() {
+    const u = Auth.currentUser;
+    if (!u) return;
+    openModal('Profil Saya', `<form onsubmit="Pages._saveProfilSaya(event)">
+      <div class="space-y-4">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-input" name="nama_lengkap" value="${u.nama_lengkap || ''}" required></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" name="email" value="${u.email}" required></div>
+        <div class="form-group"><label class="form-label">Password Baru (kosongkan jika tidak diubah)</label><input type="password" class="form-input" name="password" minlength="6" placeholder="Minimal 6 karakter"></div>
+        <div class="form-group"><label class="form-label">Konfirmasi Password Baru</label><input type="password" class="form-input" name="password_confirm" minlength="6" placeholder="Ulangi password baru"></div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>`);
+  },
+
+  async _saveProfilSaya(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    if (data.password && data.password !== data.password_confirm) {
+      showToast('error', 'Konfirmasi password tidak cocok');
+      return;
+    }
+    const updates = { nama_lengkap: data.nama_lengkap, email: data.email };
+    if (data.password && data.password.trim()) {
+      updates.password = data.password;
+    }
+    await DB.update('profiles', Auth.currentUser.id, updates);
+    Object.assign(Auth.currentUser, updates);
+    delete Auth.currentUser.password;
+    localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
+    let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+    const idx = users.findIndex(u => u.id === Auth.currentUser.id);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...updates };
+      localStorage.setItem('mops_users', JSON.stringify(users));
+    }
+    this.updateUserInfo();
+    showToast('success', 'Profil berhasil diubah');
+    closeModal();
   },
 };
