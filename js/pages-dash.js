@@ -874,8 +874,16 @@ const Pages = {
     }
     await DB.update('profiles', userId, updates);
 
+    let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...updates };
+      localStorage.setItem('mops_users', JSON.stringify(users));
+    }
+
     if (userId === Auth.currentUser?.id) {
       Object.assign(Auth.currentUser, updates);
+      delete Auth.currentUser.password;
       localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
       this.updateUserInfo();
     }
