@@ -23,19 +23,8 @@ function initLocalData() {
     }
   });
 
-  // Default admin
+  // Default admin - DISABLED (users must be created via register or setup)
   const users = JSON.parse(localStorage.getItem('mops_users') || '[]');
-  if (users.length === 0) {
-    users.push(
-      { id: 'user_admin_001', email: 'admin@kemenag.go.id', password: 'admin123', nama_lengkap: 'Admin Kemenag', role: 'super_admin', is_active: true, created_at: new Date().toISOString() },
-      { id: 'user_guru_001', email: 'guru@mi.sch.id', password: 'guru123', nama_lengkap: 'Ahmad Fauzi, S.Pd.I', role: 'guru', madrasah_id: 'mad_001', is_active: true, created_at: new Date().toISOString() },
-      { id: 'user_ortu_001', email: 'ortu@mi.sch.id', password: 'ortu123', nama_lengkap: 'Budi Santoso (Orang Tua)', role: 'ortu', madrasah_id: 'mad_001', is_active: true, created_at: new Date().toISOString() }
-    );
-    localStorage.setItem('mops_users', JSON.stringify(users));
-  } else if (!users.find(u => u.role === 'ortu')) {
-    users.push({ id: 'user_ortu_001', email: 'ortu@mi.sch.id', password: 'ortu123', nama_lengkap: 'Budi Santoso (Orang Tua)', role: 'ortu', madrasah_id: 'mad_001', is_active: true, created_at: new Date().toISOString() });
-    localStorage.setItem('mops_users', JSON.stringify(users));
-  }
 
   // Madrasah
   const madrasah = JSON.parse(localStorage.getItem('mops_madrasah') || '[]');

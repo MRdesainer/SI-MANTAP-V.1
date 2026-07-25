@@ -48,6 +48,10 @@
 
         <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
 
+        <div id="setupAlert" class="hidden mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+          <strong>Belum ada akun admin!</strong><br> Silakan buat akun admin pertama untuk mengelola sistem.
+        </div>
+
         <form id="loginForm" onsubmit="handleLogin(event)">
           <div class="form-group">
             <label class="form-label">Email</label>
@@ -65,6 +69,31 @@
           <button type="submit" id="loginBtn" class="btn btn-primary w-full justify-center py-3 text-base font-semibold mt-4">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
             Masuk
+          </button>
+        </form>
+
+        <form id="setupForm" class="hidden" onsubmit="handleSetupAdmin(event)">
+          <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+            <strong>Setup Admin Pertama</strong> — Buat akun super_admin untuk mulai mengelola sistem.
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" id="setupNama" class="form-input" placeholder="Nama admin" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="setupEmail" class="form-input" placeholder="Email admin" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="setupPassword" class="form-input" placeholder="Minimal 6 karakter" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Konfirmasi Password</label>
+            <input type="password" id="setupConfirm" class="form-input" placeholder="Ulangi password" minlength="6" required>
+          </div>
+          <button type="submit" id="setupBtn" class="btn btn-primary w-full justify-center py-3 text-base font-semibold mt-4">
+            Buat Akun Admin
           </button>
         </form>
 
@@ -97,10 +126,19 @@
       try { initSupabase(); } catch(e) { console.warn('initSupabase:', e); }
       if (Auth.checkSession()) window.location.href = 'app.html';
       applyLoginSettings();
+      checkIfSetupNeeded();
       window.addEventListener('storage', (e) => {
         if (e.key === 'mops_settings') applyLoginSettings();
       });
     });
+
+    function checkIfSetupNeeded() {
+      const users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+      if (users.length === 0) {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('setupForm').classList.remove('hidden');
+      }
+    }
 
     function applyLoginSettings() {
       try {
@@ -167,6 +205,10 @@
 
         if (result.success) {
           window.location.href = 'app.html';
+        } else if (result.error === '__SETUP_REQUIRED__') {
+          document.getElementById('loginForm').classList.add('hidden');
+          document.getElementById('setupForm').classList.remove('hidden');
+          document.getElementById('setupAlert').classList.remove('hidden');
         } else {
           errDiv.textContent = result.error;
           errDiv.classList.remove('hidden');
@@ -183,6 +225,79 @@
     function togglePassword() {
       const input = document.getElementById('password');
       input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function handleSetupAdmin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('setupBtn');
+      const errDiv = document.getElementById('login-error');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> Membuat akun...';
+      errDiv.classList.add('hidden');
+
+      try {
+        const nama = document.getElementById('setupNama').value;
+        const email = document.getElementById('setupEmail').value;
+        const pass = document.getElementById('setupPassword').value;
+        const confirm = document.getElementById('setupConfirm').value;
+
+        if (!nama || !email || !pass) {
+          errDiv.textContent = 'Semua field wajib diisi';
+          errDiv.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = 'Buat Akun Admin';
+          return;
+        }
+
+        if (pass !== confirm) {
+          errDiv.textContent = 'Konfirmasi password tidak cocok';
+          errDiv.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = 'Buat Akun Admin';
+          return;
+        }
+
+        const adminUser = {
+          id: 'admin_' + Date.now(),
+          email: email,
+          password: pass,
+          nama_lengkap: nama,
+          role: 'super_admin',
+          is_active: true,
+          created_at: new Date().toISOString()
+        };
+
+        let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+        if (users.find(u => u.email === email)) {
+          errDiv.textContent = 'Email sudah terdaftar';
+          errDiv.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = 'Buat Akun Admin';
+          return;
+        }
+        users.push(adminUser);
+        localStorage.setItem('mops_users', JSON.stringify(users));
+
+        let profiles = JSON.parse(localStorage.getItem('mops_profiles') || '[]');
+        profiles.push({ ...adminUser });
+        localStorage.setItem('mops_profiles', JSON.stringify(profiles));
+
+        btn.disabled = false;
+        btn.innerHTML = 'Buat Akun Admin';
+        showToast('success', 'Akun admin berhasil dibuat! Silakan login.');
+
+        document.getElementById('setupForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('setupAlert').classList.add('hidden');
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      } catch (err) {
+        errDiv.textContent = 'Terjadi kesalahan: ' + err.message;
+        errDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = 'Buat Akun Admin';
+      }
     }
 
     function showToast(type, message) {

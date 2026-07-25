@@ -47,18 +47,6 @@ const Auth = {
     try {
       let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
 
-      if (users.length === 0) {
-        console.warn('[Auth] No offline users found, auto-seeding default accounts...');
-        users = [
-          { id: 'user_admin1', email: 'admin@si-mantap.go.id', password: 'Admin123!', nama_lengkap: 'Administrator', role: 'super_admin', is_active: true, created_at: new Date().toISOString() },
-          { id: 'user_admin2', email: 'admin@kemenag.go.id', password: 'admin123', nama_lengkap: 'Admin Kemenag', role: 'super_admin', is_active: true, created_at: new Date().toISOString() },
-          { id: 'user_pendosainsyaf', email: 'pendosainsyaf2@gmail.com', password: 'pendosainsyaf2', nama_lengkap: 'Pendosainsyaf', role: 'guru', is_active: true, created_at: new Date().toISOString() },
-          { id: 'user_guru1', email: 'guru@mi.sch.id', password: 'guru123', nama_lengkap: 'Guru Demo', role: 'guru', is_active: true, created_at: new Date().toISOString() },
-          { id: 'user_ortu1', email: 'ortu@mi.sch.id', password: 'ortu123', nama_lengkap: 'Orang Tua Demo', role: 'ortu', is_active: true, created_at: new Date().toISOString() },
-        ];
-        localStorage.setItem('mops_users', JSON.stringify(users));
-      }
-
       const user = users.find(u =>
         u.email === email &&
         u.password === password &&
@@ -66,6 +54,9 @@ const Auth = {
       );
 
       if (!user) {
+        if (users.length === 0) {
+          return { success: false, error: '__SETUP_REQUIRED__' };
+        }
         const emailExists = users.find(u => u.email === email);
         if (!emailExists) {
           return { success: false, error: 'Email "' + email + '" tidak terdaftar. Silakan daftar terlebih dahulu.' };
