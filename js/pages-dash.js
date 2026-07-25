@@ -1148,21 +1148,20 @@ const Pages = {
     const namaMadrasah = s.madrasahName || 'Madrasah';
     const alamatMadrasah = s.madrasahAlamat || '';
     const npsn = settings.madrasahNpsn || '';
-    const kepalaMadrasah = s.madrasahKepala || '-';
-    const ttdKepala = s.ttdKepala || '';
     const fotoHtml = m.foto
-      ? `<img src="${m.foto}" style="width:65px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
-      : `<div style="width:65px;height:80px;border:1.5px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:9px;text-align:center">Foto</div>`;
+      ? `<img src="${m.foto}" style="width:60px;height:72px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
+      : `<div style="width:60px;height:72px;border:1.5px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:9px;text-align:center">Foto</div>`;
     const logoHtml = madrasahLogo
-      ? `<img src="${madrasahLogo}" style="width:36px;height:36px;object-fit:contain">`
-      : `<div style="width:36px;height:36px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:14px">M</div>`;
+      ? `<img src="${madrasahLogo}" style="width:32px;height:32px;object-fit:contain">`
+      : `<div style="width:32px;height:32px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px">M</div>`;
+    const alamatLine = alamatMadrasah + (npsn ? ' — NPSN: ' + npsn : '');
 
     return `<div class="kartu-pelajar kartu-depan">
       <div class="kartu-header">
         <div class="kartu-logo">${logoHtml}</div>
         <div class="kartu-identitas">
           <div class="kartu-nama-instansi">${namaMadrasah}</div>
-          <div class="kartu-alamat-instansi">${alamatMadrasah}${npsn ? ' — NPSN: '+npsn : ''}</div>
+          <div class="kartu-alamat-instansi">${alamatLine}</div>
         </div>
       </div>
       <div class="kartu-body">
@@ -1176,11 +1175,8 @@ const Pages = {
           <div class="kartu-field"><span class="kartu-label">Tgl Lahir</span><span class="kartu-value">${m.tanggal_lahir ? new Date(m.tanggal_lahir).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '-'}</span></div>
         </div>
       </div>
-      <div class="kartu-footer">
-        <div class="kartu-ttd">
-          ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:18mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Kepala Madrasah</div><div class="kartu-ttd-garis"></div>`}
-          <div class="kartu-ttd-nama">${kepalaMadrasah}</div>
-        </div>
+      <div class="kartu-footer-depan">
+        <div style="font-size:5pt;color:#999;text-align:right;width:100%">Kartu Pelajar — ${namaMadrasah}</div>
       </div>
     </div>`;
   },
@@ -1208,7 +1204,7 @@ const Pages = {
         <div class="kartu-ikrar">${ikrarHtml}</div>
         <div class="kartu-back-ttd-row">
           <div class="kartu-back-ttd">
-            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:12mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Mengetahui,<br>Kepala Madrasah</div><div class="kartu-ttd-garis"></div>`}
+            ${ttdKepala ? `<div style="margin-bottom:1mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-label">Mengetahui,<br>Kepala Madrasah</div><div class="kartu-ttd-garis"></div>`}
             <div class="kartu-ttd-nama">${kepalaMadrasah}</div>
           </div>
           <div class="kartu-back-ttd">
@@ -1267,14 +1263,14 @@ const Pages = {
   .kartu-depan .kartu-logo { flex-shrink:0; }
   .kartu-depan .kartu-identitas { flex:1;min-width:0; }
   .kartu-depan .kartu-nama-instansi { font-size:7.5pt;font-weight:700;color:#065f46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .kartu-depan .kartu-alamat-instansi { font-size:5pt;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-alamat-instansi { font-size:4.5pt;color:#666;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-wrap:break-word; }
   .kartu-depan .kartu-body { display:flex;gap:2.5mm;flex:1;padding:1.5mm 0; }
   .kartu-depan .kartu-foto { flex-shrink:0;display:flex;align-items:flex-start;padding-top:1mm; }
-  .kartu-depan .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.6mm; }
+  .kartu-depan .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.5mm; }
   .kartu-depan .kartu-field { display:flex;align-items:baseline;gap:1.5mm; }
   .kartu-depan .kartu-label { font-size:5pt;color:#888;width:42px;flex-shrink:0; }
   .kartu-depan .kartu-value { font-size:6.5pt;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .kartu-depan .kartu-footer { display:flex;justify-content:flex-end;padding-top:1.5mm;border-top:1px solid #eee; }
+  .kartu-depan .kartu-footer-depan { padding-top:1mm;border-top:1px solid #eee; }
 
   /* BELAKANG */
   .kartu-belakang { background:#f8fdf9; }
@@ -1286,8 +1282,8 @@ const Pages = {
   .kartu-belakang .kartu-ikrar p { margin:0 0 1.5mm 0; }
   .kartu-belakang .kartu-ikrar ol { margin:0;padding-left:4mm; }
   .kartu-belakang .kartu-ikrar li { margin-bottom:0.8mm; }
-  .kartu-belakang .kartu-back-ttd-row { display:flex;justify-content:space-between;padding-top:2mm;border-top:1px solid #ddd; }
-  .kartu-belakang .kartu-back-ttd { text-align:center;width:38mm; }
+  .kartu-belakang .kartu-back-ttd-row { display:flex;justify-content:space-between;padding-top:2mm;border-top:1px solid #ddd;gap:2mm; }
+  .kartu-belakang .kartu-back-ttd { text-align:center;flex:1;min-width:0; }
 
   .kartu-ttd { text-align:center;width:40mm; }
   .kartu-ttd-label { font-size:5pt;color:#888; }
