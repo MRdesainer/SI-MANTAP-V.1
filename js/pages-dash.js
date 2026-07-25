@@ -1202,12 +1202,12 @@ const Pages = {
       </div>
       <div class="kartu-back-body">
         <div class="kartu-ikrar">${ikrarHtml}</div>
-        <div class="kartu-back-ttd-row" style="justify-content:flex-end">
-          <div class="kartu-back-ttd" style="width:42mm">
-            <div class="kartu-ttd-label">Mengetahui,</div>
-            <div class="kartu-ttd-label" style="margin-bottom:1mm">Kepala Madrasah</div>
-            ${ttdKepala ? `<div style="margin-bottom:0.5mm"><img src="${ttdKepala}" style="height:10mm;object-fit:contain"></div>` : `<div class="kartu-ttd-garis"></div>`}
-            <div style="font-size:7pt;font-weight:700;color:#1f2937;text-decoration:underline;text-transform:uppercase;letter-spacing:0.3px">${kepalaMadrasah}</div>
+        <div style="display:flex;justify-content:flex-end;padding-top:1.5mm;border-top:1px solid #ddd">
+          <div style="text-align:center;width:42mm">
+            <div style="font-size:4.5pt;color:#888">Mengetahui,</div>
+            <div style="font-size:4.5pt;color:#888;margin-bottom:0.5mm">Kepala Madrasah</div>
+            ${ttdKepala ? `<div><img src="${ttdKepala}" style="height:8mm;object-fit:contain"></div>` : `<div style="border-bottom:1px solid #333;margin:1.5mm 6mm"></div>`}
+            <div style="font-size:6.5pt;font-weight:700;color:#1f2937;text-decoration:underline;margin-top:0.5mm">${kepalaMadrasah}</div>
           </div>
         </div>
       </div>
@@ -1269,7 +1269,7 @@ const Pages = {
   .kartu-depan .kartu-footer-depan { padding-top:1mm;border-top:1px solid #eee; }
 
   /* BELAKANG */
-  .kartu-belakang { background:#f8fdf9; }
+  .kartu-belakang { background:#f8fdf9;height:56mm; }
   .kartu-belakang .kartu-back-header { text-align:center;padding-bottom:1.5mm;border-bottom:1.5px solid #065f46;margin-bottom:1.5mm; }
   .kartu-belakang .kartu-back-title { font-size:8pt;font-weight:800;color:#065f46;letter-spacing:1px; }
   .kartu-belakang .kartu-back-subtitle { font-size:5pt;color:#666;margin-top:0.5mm; }
