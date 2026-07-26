@@ -62,6 +62,7 @@ END $$;
 INSERT INTO profiles (email, password, nama_lengkap, role, is_active) VALUES
   ('admin@si-mantap.go.id', 'Admin123!', 'Administrator', 'super_admin', true),
   ('admin@kemenag.go.id', 'admin123', 'Admin Kemenag', 'super_admin', true),
+  ('mis.bustanululum01@gmail.com', 'admin123', 'Admin Bustanul Ulum', 'super_admin', true),
   ('pendosainsyaf2@gmail.com', 'pendosainsyaf2', 'Pendosainsyaf', 'guru', true),
   ('guru@mi.sch.id', 'guru123', 'Guru Demo', 'guru', true),
   ('ortu@mi.sch.id', 'ortu123', 'Orang Tua Demo', 'ortu', true)
