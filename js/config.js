@@ -111,7 +111,7 @@ const SARANA_KONDISI = [
 
 const ROLE_ACCESS = {
   super_admin: ['*','manajemen_user'],
-  guru: ['dashboard','murid','jadwal','absensi','absensi_guru','kalender','penilaian','kurikulum','kritik_saran','pengumuman'],
+  guru: ['dashboard','murid','jadwal','absensi','absensi_guru','kalender','penilaian','kurikulum','kritik_saran','pengumuman','kartu_pelajar'],
   ortu: ['dashboard','kalender','absensi','penilaian','kritik_saran'],
 };
 
@@ -120,4 +120,5 @@ const PAGE_SUBTITLES = {
   murid: 'Manajemen data peserta didik',
   absensi: 'Pencatatan kehadiran siswa harian',
   penilaian: 'Input dan manajemen nilai siswa',
+  kartu_pelajar: 'Cetak kartu pelajar siswa',
 };

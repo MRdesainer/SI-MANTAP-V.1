@@ -26,7 +26,9 @@
 4. **Kedua**: Buka file `sql/auth_security.sql` → copy paste → klik **Run**
 
 > `schema.sql` = membuat semua tabel, trigger, seed data
-> `auth_security.sql` = membuat profiles, auth trigger, RLS policies, admin seed
+> `auth_security.sql` = membuat profiles (standalone + password), RLS policies, admin seed
+>
+> **PENTING**: Jalankan `schema.sql` dulu, baru `auth_security.sql`. Jangan jalankan `fix_simple_auth.sql` kecuali ada masalah dengan `auth_security.sql`.
 
 ---
 
@@ -83,7 +85,7 @@ git push -u origin main
 
 ## Keamanan
 
-- **Supabase Auth**: Password di-hash dengan bcrypt (bukan base64)
+- **Dual Auth**: Mendukung Supabase Auth (bcrypt) DAN simple auth (plain password)
 - **RLS Policies**: Admin = full access, Guru = baca + tulis terbatas, Ortu = baca data anak saja
 - **Auto-profile**: Trigger otomatis buat profil saat user signup
 - **Email Confirmation**: Aktifkan di Supabase Auth Settings untuk keamanan tambahan
@@ -98,21 +100,29 @@ git push -u origin main
 ## Troubleshooting
 
 ### "Email atau password salah"
-- Cek apakah `auth_security.sql` sudah dijalankan
+- Pastikan `schema.sql` sudah dijalankan dulu, baru `auth_security.sql`
+- Cek apakah tabel `profiles` sudah ada di Supabase (Table Editor)
 - Password admin: `Admin123!`
+- Email: `admin@si-mantap.go.id`
+
+### Login tidak bisa sama sekali
+- Jalankan `fix_simple_auth.sql` sebagai alternatif (DISABLE RLS di semua tabel)
+- Cek browser console (F12) untuk error detail
+- Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` benar di `js/config.js`
 
 ### Data tidak muncul
 - Buka browser console (F12) → cek error
 - Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` benar
 
 ### RLS Blocking (error 403)
+- Jalankan `fix_simple_auth.sql` untuk disable RLS, atau
 - Pastikan helper functions (`is_admin()`, `get_user_role()`) sudah dibuat
 - Jalankan ulang `auth_security.sql`
 
 ### Reset admin password
 ```sql
 -- Ganti password admin di Supabase SQL Editor
-UPDATE auth.users
-SET encrypted_password = crypt('PasswordBaru123!', gen_salt('bf'))
+UPDATE profiles
+SET password = 'PasswordBaru123!'
 WHERE email = 'admin@si-mantap.go.id';
 ```

@@ -781,6 +781,7 @@ const Pages = {
           <div class="search-box"><input type="text" id="searchUser" placeholder="Cari nama, email..." class="form-input w-64" oninput="Pages._filterUser()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
           <select id="filterRoleUser" class="form-select w-36" onchange="Pages._filterUser()"><option value="">Semua Role</option><option value="super_admin">Super Admin</option><option value="operator">Operator</option><option value="kepala_madrasah">Kepala Madrasah</option><option value="guru">Guru</option><option value="ortu">Orang Tua</option></select>
         </div>
+        <button class="btn btn-primary btn-sm" onclick="Pages._formEditProfilSaya()">Profil Saya</button>
         <button class="btn btn-primary" onclick="Pages._formAddUser()"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Tambah User</button>
       </div>
       <div class="card">
@@ -793,7 +794,7 @@ const Pages = {
         <div class="card-body border-t"><span class="text-sm text-gray-500">${users.length} user terdaftar</span></div>
       </div>
       <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-        <strong>Catatan:</strong> Admin dapat menambahkan user baru langsung dari halaman ini. User juga bisa mendaftar sendiri melalui halaman Register.
+        <strong>Catatan:</strong> Admin dapat menambahkan user baru langsung dari halaman ini. User juga bisa mendaftar sendiri melalui halaman Register. Klik "Profil Saya" untuk mengubah profil admin sendiri.
       </div>`;
   },
 
@@ -812,6 +813,7 @@ const Pages = {
         <button class="btn btn-sm btn-outline" onclick="Pages._formEditUser('${u.id}','${(u.nama_lengkap||'').replace(/'/g,"\\'")}','${u.email}','${u.role}')">Edit</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._formChangeRole('${u.id}','${u.role}')">Role</button>
         <button class="btn btn-sm btn-outline" onclick="Pages._toggleUserActive('${u.id}',${u.is_active})">${u.is_active ? 'Non-Aktifkan' : 'Aktifkan'}</button>
+        ${!u.is_active ? `<button class="btn btn-sm btn-danger" onclick="Pages._deleteUser('${u.id}','${(u.nama_lengkap||u.email).replace(/'/g,"\\'")}')">Hapus</button>` : ''}
       </div></td>
     </tr>`;
   },
@@ -873,8 +875,16 @@ const Pages = {
     }
     await DB.update('profiles', userId, updates);
 
+    let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...updates };
+      localStorage.setItem('mops_users', JSON.stringify(users));
+    }
+
     if (userId === Auth.currentUser?.id) {
       Object.assign(Auth.currentUser, updates);
+      delete Auth.currentUser.password;
       localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
       this.updateUserInfo();
     }
@@ -884,24 +894,194 @@ const Pages = {
     this.renderManajemenUser();
   },
 
-  _formAddUser() {
-    openModal('Tambah User Baru', `<form onsubmit="Pages._saveAddUser(event)">
-      <div class="space-y-4">
-        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-input" name="nama_lengkap" required></div>
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" name="email" required></div>
-        <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" name="password" minlength="6" placeholder="Minimal 6 karakter" required></div>
-        <div class="form-group"><label class="form-label">Role</label>
-          <select class="form-select" name="role">
-            <option value="guru">Guru</option>
-            <option value="ortu">Orang Tua</option>
-            <option value="operator">Operator</option>
-            <option value="kepala_madrasah">Kepala Madrasah</option>
-            <option value="super_admin">Super Admin</option>
-          </select>
+  async _deleteUser(userId, nama) {
+    openModal('Hapus User', `
+      <div class="text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </div>
-        <div class="form-group flex items-center gap-2">
-          <input type="checkbox" class="form-checkbox" name="is_active" id="addUserActive" checked>
-          <label class="form-label mb-0" for="addUserActive">Aktifkan langsung</label>
+        <p class="text-sm text-gray-600 mb-1">Yakin ingin menghapus user:</p>
+        <p class="font-semibold text-gray-900 mb-4">${nama}</p>
+        <p class="text-xs text-red-500">Tindakan ini tidak dapat dibatalkan.</p>
+      </div>
+      <div class="flex justify-center gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="button" class="btn btn-danger" onclick="Pages._confirmDeleteUser('${userId}')">Hapus</button>
+      </div>
+    `);
+  },
+
+  async _confirmDeleteUser(userId) {
+    try {
+      await DB.delete('profiles', userId);
+      let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+      users = users.filter(u => u.id !== userId);
+      localStorage.setItem('mops_users', JSON.stringify(users));
+      showToast('success', 'User berhasil dihapus');
+      closeModal();
+      this.renderManajemenUser();
+    } catch(e) {
+      showToast('error', 'Gagal menghapus user: ' + e.message);
+    }
+  },
+
+  _formEditProfilSaya() {
+    const u = Auth.currentUser;
+    if (!u) return;
+    openModal('Profil Saya', `<form onsubmit="Pages._saveProfilSaya(event)">
+      <div class="space-y-4">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-input" name="nama_lengkap" value="${u.nama_lengkap || ''}" required></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" name="email" value="${u.email}" required></div>
+        <div class="form-group"><label class="form-label">Password Baru (kosongkan jika tidak diubah)</label><input type="password" class="form-input" name="password" minlength="6" placeholder="Minimal 6 karakter"></div>
+        <div class="form-group"><label class="form-label">Konfirmasi Password Baru</label><input type="password" class="form-input" name="password_confirm" minlength="6" placeholder="Ulangi password baru"></div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>`);
+  },
+
+  async _saveProfilSaya(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    if (data.password && data.password !== data.password_confirm) {
+      showToast('error', 'Konfirmasi password tidak cocok');
+      return;
+    }
+    const updates = { nama_lengkap: data.nama_lengkap, email: data.email };
+    if (data.password && data.password.trim()) {
+      updates.password = data.password;
+    }
+    await DB.update('profiles', Auth.currentUser.id, updates);
+    Object.assign(Auth.currentUser, updates);
+    delete Auth.currentUser.password;
+    localStorage.setItem('mops_current_user', JSON.stringify(Auth.currentUser));
+    let users = JSON.parse(localStorage.getItem('mops_users') || '[]');
+    const idx = users.findIndex(u => u.id === Auth.currentUser.id);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...updates };
+      localStorage.setItem('mops_users', JSON.stringify(users));
+    }
+    this.updateUserInfo();
+    showToast('success', 'Profil berhasil diubah');
+    closeModal();
+  },
+
+  // ========== KARTU PELAJAR ==========
+  renderKartuPelajar() {
+    const page = document.getElementById('activePage');
+    const murid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]');
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+
+    page.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <div class="search-box"><input type="text" id="searchKartu" placeholder="Cari nama, NISN..." class="form-input w-64" oninput="Pages._filterKartuPelajar()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+          <select id="filterKelasKartu" class="form-select w-36" onchange="Pages._filterKartuPelajar()"><option value="">Semua Kelas</option>${kelas.map(k => `<option value="${k.id}">${k.nama_kelas}</option>`).join('')}</select>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline" onclick="Pages._formKartuSettings()">Pengaturan Kartu</button>
+          <button class="btn btn-outline" onclick="Pages._printAllKartu()">Cetak Semua</button>
+          <button class="btn btn-primary" onclick="Pages._printSelectedKartu()">Cetak Terpilih</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-container">
+          <table>
+            <thead><tr><th><input type="checkbox" id="selectAllKartu" onchange="Pages._toggleAllKartu(this)"></th><th>No</th><th>Nama</th><th>NISN</th><th>Kelas</th><th>JK</th><th>Aksi</th></tr></thead>
+            <tbody id="kartuTableBody">${murid.map((m, i) => this._kartuRow(m, i + 1)).join('')}</tbody>
+          </table>
+        </div>
+        <div class="card-body border-t"><span class="text-sm text-gray-500">${murid.length} siswa</span></div>
+      </div>`;
+  },
+
+  _kartuRow(m, no) {
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]').find(k => k.id === m.kelas_id);
+    return `<tr>
+      <td><input type="checkbox" class="kartu-check" value="${m.id}"></td>
+      <td class="font-medium">${no}</td>
+      <td><div class="flex items-center gap-2"><div class="avatar avatar-sm">${Utils.getInitials(m.nama_lengkap)}</div><span class="font-medium text-sm">${m.nama_lengkap}</span></div></td>
+      <td class="text-sm">${m.nisn||'-'}</td>
+      <td><span class="badge badge-blue">${kelas?.nama_kelas||'-'}</span></td>
+      <td class="text-sm">${m.jenis_kelamin||'-'}</td>
+      <td><div class="flex gap-1">
+        <button class="btn btn-sm btn-outline" onclick="Pages._previewKartu('${m.id}')">Preview</button>
+        <button class="btn btn-sm btn-primary" onclick="Pages._printSingleKartu('${m.id}')">Cetak</button>
+      </div></td>
+    </tr>`;
+  },
+
+  _filterKartuPelajar() {
+    const s = document.getElementById('searchKartu')?.value?.toLowerCase() || '';
+    const k = document.getElementById('filterKelasKartu')?.value || '';
+    let m = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    if (s) m = m.filter(x => (x.nama_lengkap||'').toLowerCase().includes(s) || (x.nisn||'').includes(s));
+    if (k) m = m.filter(x => x.kelas_id === k);
+    document.getElementById('kartuTableBody').innerHTML = m.map((x, i) => this._kartuRow(x, i + 1)).join('');
+  },
+
+  _toggleAllKartu(cb) {
+    document.querySelectorAll('.kartu-check').forEach(c => c.checked = cb.checked);
+  },
+
+  _getKartuSettings() {
+    const app = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const kartu = JSON.parse(localStorage.getItem('mops_kartu_settings') || '{}');
+    return {
+      madrasahLogo: kartu.madrasahLogo || app.madrasahLogo || '',
+      madrasahName: kartu.madrasahName || app.madrasahName || 'Madrasah',
+      madrasahAlamat: kartu.madrasahAlamat || app.madrasahAlamat || '',
+      madrasahNpsn: app.madrasahNpsn || '',
+      madrasahKepala: kartu.madrasahKepala || app.madrasahKepala || '-',
+      ttdKepala: kartu.ttdKepala || '',
+      ikrar: kartu.ikrar || 'Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang, kami siswa/santri {MADRASAH} berjanji:\n1. Menuntut ilmu dengan sungguh-sungguh dan menjaga nama baik madrasah.\n2. Menjunjung tinggi akhlak mulia, sopan santun, dan disiplin.\n3. Mematuhi peraturan madrasah serta menghormati guru dan sesama.\n4. Menjaga kebersihan, kerapian, dan keamanan lingkungan madrasah.\n5. Mengamalkan ilmu yang diperoleh untuk kebaikan diri, agama, dan bangsa.',
+    };
+  },
+
+  _formKartuSettings() {
+    const s = this._getKartuSettings();
+    const ikrarEsc = s.ikrar.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    openModal('Pengaturan Kartu Pelajar', `<form onsubmit="Pages._saveKartuSettings(event)">
+      <div class="space-y-4">
+        <div class="form-group">
+          <label class="form-label">Nama Madrasah (di Kartu)</label>
+          <input type="text" class="form-input" name="madrasahName" value="${s.madrasahName}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alamat Madrasah (di Kartu)</label>
+          <input type="text" class="form-input" name="madrasahAlamat" value="${s.madrasahAlamat}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nama Kepala Madrasah (TTD)</label>
+          <input type="text" class="form-input" name="madrasahKepala" value="${s.madrasahKepala}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tanda Tangan Kepala Madrasah (gambar)</label>
+          <div class="relative inline-block">
+            <label for="inputTtdKepala" class="cursor-pointer block w-full h-24 rounded-lg border-2 border-dashed border-gray-300 hover:border-emerald-400 transition flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-emerald-50">
+              <div id="previewTtdKepala" class="w-full h-full flex items-center justify-center">${s.ttdKepala ? `<img src="${s.ttdKepala}" style="max-height:90px;object-fit:contain">` : `<div class="text-center"><svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg><div class="text-xs text-gray-400 mt-1">Klik untuk upload tanda tangan</div>`}</div>
+            </label>
+            <input type="file" id="inputTtdKepala" accept="image/*" class="hidden" onchange="Pages._previewTtdKepalaImg(this)">
+          </div>
+          ${s.ttdKepala ? `<button type="button" class="btn btn-sm btn-outline text-red-500 mt-2" onclick="Pages._removeTtdKepala()">Hapus TTD</button>` : ''}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logo Madrasah (di Kartu)</label>
+          <div class="relative inline-block">
+            <label for="inputKartuLogo" class="cursor-pointer block w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 hover:border-emerald-400 transition flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-emerald-50">
+              <div id="previewKartuLogo" class="w-full h-full flex items-center justify-center">${s.madrasahLogo ? `<img src="${s.madrasahLogo}" style="width:100%;height:100%;object-fit:contain">` : `<div class="text-center"><svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><div class="text-xs text-gray-400 mt-1">Upload Logo</div>`}</div>
+            </label>
+            <input type="file" id="inputKartuLogo" accept="image/*" class="hidden" onchange="Pages._previewKartuLogoImg(this)">
+          </div>
+          ${s.madrasahLogo ? `<button type="button" class="btn btn-sm btn-outline text-red-500 mt-2" onclick="Pages._removeKartuLogo()">Hapus Logo</button>` : ''}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teks Ikrar Siswa</label>
+          <textarea class="form-input" name="ikrar" rows="8" style="font-size:12px;line-height:1.5">${s.ikrar}</textarea>
+          <p class="text-xs text-gray-400 mt-1">Gunakan <code>{MADRASAH}</code> untuk nama madrasah otomatis.</p>
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
@@ -928,5 +1108,248 @@ const Pages = {
     } catch (err) {
       showToast('error', 'Gagal menambahkan user: ' + (err.message || err));
     }
+  },
+
+  _previewTtdKepalaImg(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('previewTtdKepala').innerHTML = `<img src="${e.target.result}" style="max-height:90px;object-fit:contain">`;
+      document.getElementById('previewTtdKepala').dataset.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+
+  _previewKartuLogoImg(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('previewKartuLogo').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain">`;
+      document.getElementById('previewKartuLogo').dataset.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+
+  _removeTtdKepala() {
+    document.getElementById('previewTtdKepala').innerHTML = `<div class="text-center"><svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg><div class="text-xs text-gray-400 mt-1">Upload tanda tangan</div>`;
+    document.getElementById('previewTtdKepala').dataset.src = '';
+  },
+
+  _removeKartuLogo() {
+    document.getElementById('previewKartuLogo').innerHTML = `<div class="text-center"><svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><div class="text-xs text-gray-400 mt-1">Upload Logo</div>`;
+    document.getElementById('previewKartuLogo').dataset.src = '';
+  },
+
+  async _saveKartuSettings(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    const ttdEl = document.getElementById('previewTtdKepala');
+    const logoEl = document.getElementById('previewKartuLogo');
+    const settings = {
+      madrasahName: data.madrasahName,
+      madrasahAlamat: data.madrasahAlamat,
+      madrasahKepala: data.madrasahKepala,
+      ttdKepala: (ttdEl?.dataset?.src) || '',
+      madrasahLogo: (logoEl?.dataset?.src) || '',
+      ikrar: data.ikrar,
+    };
+    localStorage.setItem('mops_kartu_settings', JSON.stringify(settings));
+    showToast('success', 'Pengaturan kartu berhasil disimpan');
+    closeModal();
+    this.renderKartuPelajar();
+  },
+
+  _getKartuDepanHtml(m, settings) {
+    const kelas = JSON.parse(localStorage.getItem('mops_kelas') || '[]').find(k => k.id === m.kelas_id);
+    const s = this._getKartuSettings();
+    const madrasahLogo = s.madrasahLogo || '';
+    const namaMadrasah = s.madrasahName || 'Madrasah';
+    const alamatMadrasah = s.madrasahAlamat || '';
+    const npsn = settings.madrasahNpsn || '';
+    const fotoHtml = m.foto
+      ? `<img src="${m.foto}" style="width:60px;height:72px;object-fit:cover;border-radius:4px;border:1px solid #ccc">`
+      : `<div style="width:60px;height:72px;border:1.5px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:9px;text-align:center">Foto</div>`;
+    const logoHtml = madrasahLogo
+      ? `<img src="${madrasahLogo}" style="width:32px;height:32px;object-fit:contain">`
+      : `<div style="width:32px;height:32px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px">M</div>`;
+    const alamatLine = alamatMadrasah + (npsn ? ' — NPSN: ' + npsn : '');
+
+    return `<div class="kartu-pelajar kartu-depan">
+      <div class="kartu-header">
+        <div class="kartu-logo">${logoHtml}</div>
+        <div class="kartu-identitas">
+          <div class="kartu-nama-instansi">${namaMadrasah}</div>
+          <div class="kartu-alamat-instansi">${alamatLine}</div>
+        </div>
+      </div>
+      <div class="kartu-body">
+        <div class="kartu-foto">${fotoHtml}</div>
+        <div class="kartu-data">
+          <div class="kartu-field"><span class="kartu-label">NIS</span><span class="kartu-value">${m.nis||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">NISN</span><span class="kartu-value">${m.nisn||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Nama</span><span class="kartu-value">${m.nama_lengkap||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Kelas</span><span class="kartu-value">${kelas?.nama_kelas||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">J. Kelamin</span><span class="kartu-value">${m.jenis_kelamin||'-'}</span></div>
+          <div class="kartu-field"><span class="kartu-label">Tgl Lahir</span><span class="kartu-value">${m.tanggal_lahir ? new Date(m.tanggal_lahir).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '-'}</span></div>
+        </div>
+      </div>
+      <div class="kartu-footer-depan">
+        <div style="font-size:5pt;color:#999;text-align:right;width:100%">Kartu Pelajar — ${namaMadrasah}</div>
+      </div>
+    </div>`;
+  },
+
+  _getKartuBelakangHtml(m, settings) {
+    const s = this._getKartuSettings();
+    const namaMadrasah = s.madrasahName || 'Madrasah';
+    const kepalaMadrasah = s.madrasahKepala || '-';
+    const ttdKepala = s.ttdKepala || '';
+    const ikrarText = (s.ikrar || '').replace(/{MADRASAH}/g, namaMadrasah);
+    const ikrarLines = ikrarText.split('\n').filter(l => l.trim());
+    const ikrarHtml = ikrarLines.map(line => {
+      const numMatch = line.match(/^(\d+)\.\s*(.*)/);
+      if (numMatch) return `<li>${numMatch[2]}</li>`;
+      return `<p>${line}</p>`;
+    }).join('');
+
+    return `<div class="kartu-pelajar kartu-belakang">
+      <div class="kartu-back-header">
+        ${s.madrasahLogo ? `<div style="position:absolute;top:3mm;right:3.5mm;width:14mm;height:14mm;opacity:0.15"><img src="${s.madrasahLogo}" style="width:100%;height:100%;object-fit:contain"></div>` : ''}
+        <div class="kartu-back-title">IKRAR SISWA</div>
+        <div class="kartu-back-subtitle">${namaMadrasah}</div>
+      </div>
+      <div class="kartu-back-body">
+        <div class="kartu-ikrar">${ikrarHtml}</div>
+        <div style="display:flex;justify-content:flex-end;padding-top:1.5mm;border-top:1px solid #ddd">
+          <div style="text-align:center;width:42mm">
+            <div style="font-size:4.5pt;color:#888">Mengetahui,</div>
+            <div style="font-size:4.5pt;color:#888;margin-bottom:0.5mm">Kepala Madrasah</div>
+            ${ttdKepala ? `<div style="height:8mm;overflow:hidden;margin-bottom:1mm"><img src="${ttdKepala}" style="width:100%;height:100%;object-fit:contain"></div>` : `<div style="border-bottom:1px solid #333;margin:1.5mm 6mm"></div>`}
+            <div style="font-size:6.5pt;font-weight:700;color:#1f2937;text-decoration:underline">${kepalaMadrasah}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  _previewKartu(muridId) {
+    const m = JSON.parse(localStorage.getItem('mops_murid') || '[]').find(x => x.id === muridId);
+    if (!m) return;
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const depan = this._getKartuDepanHtml(m, settings);
+    const belakang = this._getKartuBelakangHtml(m, settings);
+    openModal('Preview Kartu — ' + m.nama_lengkap, `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0">
+        <div><strong style="font-size:12px;color:#666">HALAMAN DEPAN</strong></div>
+        <div>${depan}</div>
+        <div style="margin-top:8px"><strong style="font-size:12px;color:#666">HALAMAN BELAKANG</strong></div>
+        <div>${belakang}</div>
+      </div>`,
+      `<button class="btn btn-primary" onclick="Pages._printSingleKartu('${muridId}')">Cetak Bolak-Balik</button>`
+    );
+  },
+
+  _buildPrintHtml(murids, settings) {
+    const pairs = murids.map(m => {
+      return `<div class="kartu-pair">
+        <div class="kartu-page">${this._getKartuDepanHtml(m, settings)}</div>
+        <div class="kartu-page">${this._getKartuBelakangHtml(m, settings)}</div>
+      </div>`;
+    }).join('');
+
+    return `<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Kartu Pelajar</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  @page { size: A4; margin: 10mm; }
+  body { margin:0; padding:0; font-family:'Segoe UI',Tahoma,sans-serif; }
+  * { box-sizing: border-box; }
+
+  .kartu-pair { display:flex; flex-direction:column; align-items:center; page-break-after:always; page-break-inside:avoid; padding:4mm 0; }
+  .kartu-pair:last-child { page-break-after:auto; }
+
+  .kartu-pelajar { width:86mm;height:54mm;border:1.5px solid #333;border-radius:6px;padding:3.5mm;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden; }
+
+  /* DEPAN */
+  .kartu-depan .kartu-header { display:flex;align-items:center;gap:2.5mm;padding-bottom:2mm;border-bottom:1px solid #ddd; }
+  .kartu-depan .kartu-logo { flex-shrink:0; }
+  .kartu-depan .kartu-identitas { flex:1;min-width:0; }
+  .kartu-depan .kartu-nama-instansi { font-size:7.5pt;font-weight:700;color:#065f46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-alamat-instansi { font-size:4.5pt;color:#666;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-wrap:break-word; }
+  .kartu-depan .kartu-body { display:flex;gap:2.5mm;flex:1;padding:1.5mm 0; }
+  .kartu-depan .kartu-foto { flex-shrink:0;display:flex;align-items:flex-start;padding-top:1mm; }
+  .kartu-depan .kartu-data { flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.5mm; }
+  .kartu-depan .kartu-field { display:flex;align-items:baseline;gap:1.5mm; }
+  .kartu-depan .kartu-label { font-size:5pt;color:#888;width:42px;flex-shrink:0; }
+  .kartu-depan .kartu-value { font-size:6.5pt;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .kartu-depan .kartu-footer-depan { padding-top:1mm;border-top:1px solid #eee; }
+
+  /* BELAKANG */
+  .kartu-belakang { background:#f8fdf9;height:56mm; }
+  .kartu-belakang .kartu-back-header { text-align:center;padding-bottom:1.5mm;border-bottom:1.5px solid #065f46;margin-bottom:1.5mm; }
+  .kartu-belakang .kartu-back-title { font-size:8pt;font-weight:800;color:#065f46;letter-spacing:1px; }
+  .kartu-belakang .kartu-back-subtitle { font-size:5pt;color:#666;margin-top:0.5mm; }
+  .kartu-belakang .kartu-back-body { flex:1;display:flex;flex-direction:column;justify-content:space-between; }
+  .kartu-belakang .kartu-ikrar { font-size:5pt;color:#333;line-height:1.5; }
+  .kartu-belakang .kartu-ikrar p { margin:0 0 1.5mm 0; }
+  .kartu-belakang .kartu-ikrar ol { margin:0;padding-left:4mm; }
+  .kartu-belakang .kartu-ikrar li { margin-bottom:0.8mm; }
+  .kartu-belakang .kartu-back-ttd-row { display:flex;justify-content:space-between;padding-top:2mm;border-top:1px solid #ddd;gap:2mm; }
+  .kartu-belakang .kartu-back-ttd { text-align:center;flex:1;min-width:0; }
+
+  .kartu-ttd { text-align:center;width:40mm; }
+  .kartu-ttd-label { font-size:5pt;color:#888; }
+  .kartu-ttd-garis { border-bottom:1px solid #333;margin:2.5mm 6mm; }
+  .kartu-ttd-nama { font-size:6pt;font-weight:600;color:#1f2937; }
+
+  @media print {
+    body { margin:0;padding:0; }
+    .no-print { display:none !important; }
+    .kartu-pelajar { border:1.5px solid #000; }
+    .kartu-pair { margin:0; }
+  }
+</style>
+</head><body>
+${pairs}
+</body></html>`;
+  },
+
+  _printSingleKartu(muridId) {
+    const m = JSON.parse(localStorage.getItem('mops_murid') || '[]').find(x => x.id === muridId);
+    if (!m) return;
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml([m], settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  },
+
+  _printAllKartu() {
+    const murid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    if (murid.length === 0) return showToast('error', 'Tidak ada siswa');
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml(murid, settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  },
+
+  _printSelectedKartu() {
+    const checked = [...document.querySelectorAll('.kartu-check:checked')].map(c => c.value);
+    if (checked.length === 0) return showToast('error', 'Pilih siswa yang ingin dicetak');
+    const allMurid = JSON.parse(localStorage.getItem('mops_murid') || '[]');
+    const selected = allMurid.filter(m => checked.includes(m.id));
+    const settings = JSON.parse(localStorage.getItem('mops_settings') || '{}');
+    const win = window.open('', '_blank');
+    win.document.write(this._buildPrintHtml(selected, settings));
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
   },
 };

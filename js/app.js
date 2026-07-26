@@ -256,6 +256,7 @@ const App = {
       bell_admin: () => Pages.renderBellAdmin(),
       pengumuman: () => Pages.renderPengumuman(),
       manajemen_user: () => Pages.renderManajemenUser(),
+      kartu_pelajar: () => Pages.renderKartuPelajar(),
       import_emis: () => EmisImport.render(),
     };
 
