@@ -54,9 +54,6 @@ const Auth = {
       );
 
       if (!user) {
-        if (users.length === 0) {
-          return { success: false, error: '__SETUP_REQUIRED__' };
-        }
         const emailExists = users.find(u => u.email === email);
         if (!emailExists) {
           return { success: false, error: 'Email "' + email + '" tidak terdaftar. Silakan daftar terlebih dahulu.' };
