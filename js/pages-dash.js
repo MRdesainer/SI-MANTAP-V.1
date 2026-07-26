@@ -779,8 +779,9 @@ const Pages = {
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div class="flex items-center gap-2">
           <div class="search-box"><input type="text" id="searchUser" placeholder="Cari nama, email..." class="form-input w-64" oninput="Pages._filterUser()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-          <select id="filterRoleUser" class="form-select w-36" onchange="Pages._filterUser()"><option value="">Semua Role</option><option value="guru">Guru</option><option value="ortu">Orang Tua</option><option value="operator">Operator</option><option value="kepala_madrasah">Kepala Madrasah</option></select>
+          <select id="filterRoleUser" class="form-select w-36" onchange="Pages._filterUser()"><option value="">Semua Role</option><option value="super_admin">Super Admin</option><option value="operator">Operator</option><option value="kepala_madrasah">Kepala Madrasah</option><option value="guru">Guru</option><option value="ortu">Orang Tua</option></select>
         </div>
+        <button class="btn btn-primary" onclick="Pages._formAddUser()"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Tambah User</button>
       </div>
       <div class="card">
         <div class="table-container">
@@ -792,7 +793,7 @@ const Pages = {
         <div class="card-body border-t"><span class="text-sm text-gray-500">${users.length} user terdaftar</span></div>
       </div>
       <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-        <strong>Catatan:</strong> User baru didaftarkan melalui halaman Register. Admin dapat mengubah role dan status di sini.
+        <strong>Catatan:</strong> Admin dapat menambahkan user baru langsung dari halaman ini. User juga bisa mendaftar sendiri melalui halaman Register.
       </div>`;
   },
 
@@ -881,5 +882,51 @@ const Pages = {
     showToast('success', 'Profil user berhasil diubah');
     closeModal();
     this.renderManajemenUser();
+  },
+
+  _formAddUser() {
+    openModal('Tambah User Baru', `<form onsubmit="Pages._saveAddUser(event)">
+      <div class="space-y-4">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-input" name="nama_lengkap" required></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" name="email" required></div>
+        <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" name="password" minlength="6" placeholder="Minimal 6 karakter" required></div>
+        <div class="form-group"><label class="form-label">Role</label>
+          <select class="form-select" name="role">
+            <option value="guru">Guru</option>
+            <option value="ortu">Orang Tua</option>
+            <option value="operator">Operator</option>
+            <option value="kepala_madrasah">Kepala Madrasah</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+        <div class="form-group flex items-center gap-2">
+          <input type="checkbox" class="form-checkbox" name="is_active" id="addUserActive" checked>
+          <label class="form-label mb-0" for="addUserActive">Aktifkan langsung</label>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>`);
+  },
+
+  async _saveAddUser(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await DB.insert('profiles', {
+        nama_lengkap: data.nama_lengkap,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        is_active: data.is_active === 'on',
+      });
+      showToast('success', 'User berhasil ditambahkan');
+      closeModal();
+      this.renderManajemenUser();
+    } catch (err) {
+      showToast('error', 'Gagal menambahkan user: ' + (err.message || err));
+    }
   },
 };

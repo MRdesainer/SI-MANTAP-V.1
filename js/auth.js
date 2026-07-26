@@ -98,7 +98,7 @@ const Auth = {
   logout() {
     this.currentUser = null;
     localStorage.removeItem('mops_current_user');
-    window.location.href = 'register.html';
+    window.location.href = 'index.html';
   },
 
   checkSession() {
