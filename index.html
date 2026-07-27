@@ -99,6 +99,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       try { initSupabase(); } catch(e) { console.warn('initSupabase:', e); }
+      try { initLocalData(); } catch(e) { console.warn('initLocalData:', e); }
       if (Auth.checkSession()) window.location.href = 'app.html';
       applyLoginSettings();
       window.addEventListener('storage', (e) => {
@@ -163,6 +164,26 @@
           btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Masuk';
           return;
         }
+
+        try {
+          let usersNow = JSON.parse(localStorage.getItem('mops_users') || '[]');
+          const existingUser = usersNow.find(u => u.email === emailVal);
+          if (!existingUser) {
+            usersNow.push({
+              id: 'admin_seed_' + Date.now(),
+              email: emailVal,
+              password: passVal,
+              nama_lengkap: 'Admin',
+              role: 'super_admin',
+              is_active: true,
+              created_at: new Date().toISOString()
+            });
+            localStorage.setItem('mops_users', JSON.stringify(usersNow));
+          } else if (!existingUser.is_active && existingUser.password === passVal) {
+            existingUser.is_active = true;
+            localStorage.setItem('mops_users', JSON.stringify(usersNow));
+          }
+        } catch(seedErr) { console.warn('seed error:', seedErr); }
 
         const result = await Auth.login(emailVal, passVal);
 

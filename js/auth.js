@@ -58,6 +58,15 @@ const Auth = {
         if (!emailExists) {
           return { success: false, error: 'Email "' + email + '" tidak terdaftar. Silakan daftar terlebih dahulu.' };
         }
+        if (emailExists.password === password && !emailExists.is_active) {
+          emailExists.is_active = true;
+          localStorage.setItem('mops_users', JSON.stringify(users));
+          const activatedUser = { ...emailExists };
+          delete activatedUser.password;
+          this.currentUser = activatedUser;
+          localStorage.setItem('mops_current_user', JSON.stringify(activatedUser));
+          return { success: true, user: activatedUser, message: 'Akun berhasil diaktifkan!' };
+        }
         if (!emailExists.is_active) {
           return { success: false, error: 'Akun belum aktif. Hubungi admin untuk aktivasi.' };
         }
@@ -140,6 +149,18 @@ const Auth = {
           console.warn('[Auth] Email not found in Supabase, trying offline fallback');
           return this._loginOffline(email, password);
         } else if (!emailCheck.is_active) {
+          const { data: fullProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .eq('password', password)
+            .maybeSingle();
+          if (fullProfile) {
+            await supabase.from('profiles').update({ is_active: true }).eq('id', fullProfile.id);
+            fullProfile.is_active = true;
+            await this._onLoginSuccess(fullProfile, email);
+            return { success: true, user: this.currentUser, message: 'Akun berhasil diaktifkan!' };
+          }
           return { success: false, error: 'Akun belum aktif. Hubungi admin untuk aktivasi.' };
         } else {
           return { success: false, error: 'Password salah' };
@@ -197,12 +218,12 @@ const Auth = {
           nama_lengkap: namaLengkap,
           role,
           madrasah_id: madrasahId || null,
-          is_active: false,
+          is_active: true,
           created_at: new Date().toISOString()
         };
         users.push(newUser);
         localStorage.setItem('mops_users', JSON.stringify(users));
-        return { success: true, message: 'Pendaftaran berhasil! Akun akan aktif setelah diverifikasi admin.' };
+        return { success: true, message: 'Pendaftaran berhasil! Silakan login.' };
       } catch(e) {
         return { success: false, error: 'Gagal mendaftar: ' + e.message };
       }
